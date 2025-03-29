@@ -1,0 +1,6 @@
+# Ignore binary files
+build/*
+bin/*
+*.exe
+*.a
+*.out
