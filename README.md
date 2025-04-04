@@ -1,4 +1,11 @@
 # sop25-9999
+## Bluetooth
+Idea: use multiple Atom lites to detect how many bluetooth devices are active in a given room.
+The information from multiple builidings is syncronized to a central database.
+A user will be able to load a web page and click on a room to get the near-real-time occupation of said room.
+
+### Steps
+
 ## Build and run the project
 To build and run the project, you will have to have `make` and `gcc` installed. To install them, do:
 
