@@ -4,7 +4,58 @@ Idea: use multiple Atom lites to detect how many bluetooth devices are active in
 The information from multiple builidings is syncronized to a central database.
 A user will be able to load a web page and click on a room to get the near-real-time occupation of said room.
 
-### Steps
+**Requirements:**
+
+- List current near bluetooth devices
+- Remember bluetooth devices to not count twice
+- Updates every 5 minutes
+- Low power
+- Sends number of connections over wifi to webserver
+- Webserver has to get data from multiple atoms
+- Webserver must sense if atoms are alive, notify if dead
+- Atoms must automatically reboot if error
+- ... ?
+
+### Steps (mostly AI-generated)
+1.  **M5Stack Atom Lite Setup:**
+    * Install and configure the Arduino IDE for ESP32 development. 
+    * Install necessary libraries such as M5Atom and M5Unified. 
+2.  **Bluetooth Scanning Implementation:**
+    * Develop C code to scan for Bluetooth Low Energy (BLE) devices using libraries like M5Atom or M5Unified. 
+    * Implement logic to extract and store unique device MAC addresses to avoid counting the same device multiple times. 
+    * Determine and set an appropriate scanning interval, balancing responsiveness and resource usage. 
+3.  **Data Transmission to Server:**
+    * Establish a Wi-Fi connection from the Atom Lite to the local network. 
+    * Implement HTTP POST requests to send the Bluetooth device count to the Python server. 
+    * Format the data in JSON format, including a unique identifier for each Atom Lite. 
+    * Handle the server's response and implement error checking. 
+4.  **Python Server Setup:**
+    * Install Python and the Flask framework. 
+    * Create a Flask application and define routes to handle incoming HTTP POST requests. 
+    * Implement data storage on the server, initially using an in-memory Python dictionary. 
+5.  **Webpage Development:**
+    * Create a basic HTML webpage to display the room occupancy information. 
+    * Use Flask to serve the webpage and pass the occupancy data to it. 
+    * Implement data placeholders in the HTML to dynamically display the occupancy count. 
+    * Since manual refresh is acceptable, no complex real-time update techniques are required. 
+6.  **Occupancy Estimation Logic:**
+    * Define occupancy levels (e.g., Empty, Low, Medium, High) based on predefined ranges or thresholds of detected Bluetooth devices. 
+    * Consider calibrating the system by manually counting people and correlating it with Bluetooth device counts to improve accuracy. 
+    * Acknowledge the limitations of Bluetooth-based estimation, such as variations in device usage and potential over/underestimation. 
+7.  **Testing and Integration:**
+    * Test individual components (Atom Lite, server, webpage) to ensure they function correctly.
+    * Integrate the components and perform end-to-end testing of the complete system.
+    * Deploy the system in the actual environment and conduct final testing and calibration.
+
+## Documentation
+| Website | URL |
+|-|--|
+| ATOM Lite | <https://docs.m5stack.com/en/core/atom_lite> |
+| Arduino | <https://www.arduino.cc/en/Guide> |
+| Arduino Libraries | <https://www.arduino.cc/en/Hacking/Libraries> |
+| Arduino M5stack | <https://docs.m5stack.com/en/products> |
+| Arduino Bluetooth functions | <https://docs.arduino.cc/libraries/arduinoble/> |
+| Arduino HTTP request (tutorial) | <https://arduinogetstarted.com/tutorials/arduino-http-request>
 
 ## Build and run the project
 To build and run the project, you will have to have `make` and `gcc` installed. To install them, do:
@@ -33,8 +84,12 @@ make run
 ```
 
 > Note: will have to add a command to upload the code to the controller with `make upload`.
+> It still depends on what tool we will use to upload the code to the chip. Currently I have experienced with [PlatformIO](https://platformio.org/). To use it, you will have to have python envrionments installed: `sudo apt install python3-venv` (conda does not seem to be supported at the moment), and then you can install the tool either through pip: `python3 -m pip install -U platformio` (you can find other installation procedures [here](https://docs.platformio.org/en/latest/core/installation/index.html) or you can install everything more easily with their [VScode extension](https://marketplace.visualstudio.com/items?itemName=platformio.platformio-ide)).
 
 ## Project structure
+
+> Will have to be revised to divide the work into server and chip. 
+
 The project is structured as follow:
 ```
 ./
@@ -59,6 +114,8 @@ The project is structured as follow:
 - The `test/` folder may contain tests (if we use any).
 - The `main.c` file is the entrypoint to the program.
 - The `README.md` is the file you are reading.
+
+**********************
 
 Websensor
 =========
