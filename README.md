@@ -1,4 +1,31 @@
 # sop25-9999
+## Tasks
+- [ ] Mesures
+    - [ ] Sondage pour savoir combien d'appareils Bluetooth alumés par personne
+    - [ ] Observer combien de personnes par salles
+- [ ] (chip) Collect Bluetooth data
+    - [ ] Survey to know how many possible have Bluetooth devices
+    - [ ] Measurements how full rooms are
+    - [ ] Calculations
+- [ ] (chip) Send data to server
+    - [ ] Research how to make a POST request
+    - [ ] Connect to server
+    - [ ] Connect to wifi
+    - [ ] Protocole
+        - [ ] POST number of devices
+- [ ] (server) Receive data from chips
+    - [ ] Nombre d'appareils dans chaque salle
+    - [ ] Base de données pour statistiques et fréquentation
+    - [ ] Doit être mis à jour toutes les ?? minutes
+    - [ ] Protocol
+        - [ ] obtenir nombre appareils
+        - [ ] info si chip est mort.
+- [ ] (server) Create user interface
+    - [ ] Estimation de la fréquentation
+    - [ ] Affichange de la fréquentation des salles
+    - [ ] nombre de places disponibles
+    - [ ] Température du learning lab **bonus**
+
 ## Bluetooth
 Idea: use multiple Atom lites to detect how many bluetooth devices are active in a given room.
 The information from multiple builidings is syncronized to a central database.
