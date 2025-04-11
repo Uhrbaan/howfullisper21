@@ -1,7 +1,5 @@
 {
-    "files.associations": {
-        "test_adder.h": "c",
-        "sub_folder_test.h": "c"
-    },
-    "makefile.configureOnOpen": true
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "seaube.clangformat",
+    "editor.tabSize": 4,
 }
