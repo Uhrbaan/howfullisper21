@@ -4,9 +4,9 @@
     - [ ] Sondage pour savoir combien d'appareils Bluetooth alumés par personne
     - [ ] Observer combien de personnes par salles
 - [ ] (chip) Collect Bluetooth data
-    - [ ] Survey to know how many possible have Bluetooth devices
-    - [ ] Measurements how full rooms are
-    - [ ] Calculations
+    - [ ] Get list of bluetooth devices
+    - [ ] Make sure no devices are counted twice
+    - [ ] Update every ?? minutes only.
 - [ ] (chip) Send data to server
     - [ ] Research how to make a POST request
     - [ ] Connect to server
