@@ -10,6 +10,7 @@
             "includePath": [
                 "/home/luclement/Documents/Uni/SIN.02020/999/include",
                 "/home/luclement/Documents/Uni/SIN.02020/999/src",
+                "/home/luclement/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
                 "/home/luclement/Documents/Uni/SIN.02020/999/.pio/libdeps/m5stack-atom/ArduinoBLE/src",
                 "/home/luclement/Documents/Uni/SIN.02020/999/.pio/libdeps/m5stack-atom/M5Atom/src",
                 "/home/luclement/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src",
@@ -239,7 +240,6 @@
                 "/home/luclement/.platformio/packages/framework-arduinoespressif32/libraries/USB/src",
                 "/home/luclement/.platformio/packages/framework-arduinoespressif32/libraries/Update/src",
                 "/home/luclement/.platformio/packages/framework-arduinoespressif32/libraries/WebServer/src",
-                "/home/luclement/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
                 "/home/luclement/.platformio/packages/framework-arduinoespressif32/libraries/WiFiClientSecure/src",
                 "/home/luclement/.platformio/packages/framework-arduinoespressif32/libraries/WiFiProv/src",
                 ""
@@ -249,6 +249,7 @@
                 "path": [
                     "/home/luclement/Documents/Uni/SIN.02020/999/include",
                     "/home/luclement/Documents/Uni/SIN.02020/999/src",
+                    "/home/luclement/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
                     "/home/luclement/Documents/Uni/SIN.02020/999/.pio/libdeps/m5stack-atom/ArduinoBLE/src",
                     "/home/luclement/Documents/Uni/SIN.02020/999/.pio/libdeps/m5stack-atom/M5Atom/src",
                     "/home/luclement/.platformio/packages/framework-arduinoespressif32/libraries/Wire/src",
@@ -478,7 +479,6 @@
                     "/home/luclement/.platformio/packages/framework-arduinoespressif32/libraries/USB/src",
                     "/home/luclement/.platformio/packages/framework-arduinoespressif32/libraries/Update/src",
                     "/home/luclement/.platformio/packages/framework-arduinoespressif32/libraries/WebServer/src",
-                    "/home/luclement/.platformio/packages/framework-arduinoespressif32/libraries/WiFi/src",
                     "/home/luclement/.platformio/packages/framework-arduinoespressif32/libraries/WiFiClientSecure/src",
                     "/home/luclement/.platformio/packages/framework-arduinoespressif32/libraries/WiFiProv/src",
                     ""
@@ -487,6 +487,7 @@
             "defines": [
                 "PLATFORMIO=60118",
                 "ARDUINO_M5Stack_ATOM",
+                "CORE_DEBUG_LEVEL=5",
                 "HAVE_CONFIG_H",
                 "MBEDTLS_CONFIG_FILE=\"mbedtls/esp_config.h\"",
                 "UNITY_INCLUDE_CONFIG_H",
