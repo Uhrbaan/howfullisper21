@@ -3,7 +3,12 @@
 
 static int err;
 
-// technically, these values shouldn't change once the robot is running → static
+/**
+ * @brief These values are here to configure the IP address of the server the
+ * chip will connect to, and what port to use.
+ *
+ * TODO: make configuration from build options.
+ */
 static const char *HOST_IP = "192.168.203.176";
 static const int HOST_PORT = 12345;
 
@@ -13,6 +18,11 @@ static sockaddr_in dest_addr = {0};
 static const int connection_attempts = 10;
 static bool is_connected = false;
 
+/**
+ * @brief Creates a TCP scoket.
+ *
+ * @return ESP_OK if the socket could be created, ESP_FAIL if otherwise.
+ */
 int create_tcp_socket() {
     const char *TAG = "CREATE TCP SOCKET";
 
@@ -28,6 +38,12 @@ int create_tcp_socket() {
     return ESP_OK;
 }
 
+/**
+ * @brief Initializes the TCP connection. It generates the TCP connection
+ * configuration and creates a socket.
+ *
+ * @return ESP_OK if successful, ESP_FAIL if it failed to create the socket.
+ */
 int init_tcp() {
     const char *TAG = "INIT TCP";
 
@@ -39,6 +55,13 @@ int init_tcp() {
     return err;
 }
 
+/**
+ * @brief Connects the socket to the server with the parameters defined in the
+ * configuration (static).
+ *
+ * @return ESP_OK if the connection was made, ESP_FAIL if it could not create
+ * the connection.
+ */
 int connect_tcp_socket() {
     const char *TAG = "CONNECT TCP SOCKET";
 
@@ -56,6 +79,14 @@ int connect_tcp_socket() {
     return ESP_OK;
 }
 
+/**
+ * @brief Sends some data (buffer) over TCP to the server. The function will
+ * create a connection to the server if none has already been made.
+ *
+ * @param buffer The data that will be sent to the server.
+ * @param size The size in bytes of the payload (the data).
+ * @return int
+ */
 int send_tcp(const char *buffer, size_t size) {
     const char *TAG = "SEND TCP";
 
@@ -86,4 +117,10 @@ int send_tcp(const char *buffer, size_t size) {
     return ESP_OK;
 }
 
+/**
+ * @brief Closes te tcp socket.
+ *
+ * @return ESP_OK if the socket got closed, ESP_FAIL otherwise (the socket was
+ * probably invalid).
+ */
 int close_tcp_socket() { return (close(sock) == 0) ? ESP_OK : ESP_FAIL; }

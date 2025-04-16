@@ -1,4 +1,40 @@
 # sop25-9999
+
+## Building
+This project uses PlatformIO to build the project. You can find installation instructions [here](https://platformio.org/platformio-ide).
+
+Once you have installed PlatformIO, you can either build/run it through the IDE, or run it with the command line utility:
+
+```sh
+pio run
+```
+
+## Running
+If you have the PlatformIO IDE installed, you can run it directly from there. If you only have the command line utility, you can run:
+
+```sh
+pio run
+```
+## Testing
+No tests are implemented for now. You can run them with:
+
+```sh
+pio test
+```
+
+## Documentation
+This project uses [Doxygen](https://www.doxygen.nl/) to generate its documentation. You can install Doxygen with:
+
+```sh
+sudo apt install doxygen
+```
+
+Once doxygen is installed, you can update the documentation with your own new improvements by running:
+
+```sh
+doxygen doxyfile
+```
+
 ## Tasks
 - [ ] Mesures
     - [ ] Sondage pour savoir combien d'appareils Bluetooth alumés par personne

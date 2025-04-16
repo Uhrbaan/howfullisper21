@@ -14,10 +14,11 @@ static int err = 0;
 
 int sock;
 
+// The setup function enables verbose output, serial output, connects the chip
+// to wifi and initializes the TCP socket.
 void setup() {
     M5.begin(true, false, true);
     delay(50);
-    M5.dis.drawpix(0, 0x00ff00);
     Serial.begin(115200);
 
     esp_log_level_set("*", ESP_LOG_VERBOSE);  // hithest verbosity level
@@ -44,10 +45,9 @@ void setup() {
 static bool connected = false;
 static const char payload[100] = "Hello, World !\n";
 
-/**
- * This loop sends a TCP message to an address.
- * You can listen to it with the `nc` command on linux.
- */
+// This loop continuesly checks if the button was pressed, and once it is
+// pressed, sends a "Hellow, World!\n" message to the server it tries to connect
+// to. You can listen to the output of the function with netcat.
 void loop() {
     if (M5.Btn.wasPressed()) {
         err = send_tcp(payload, sizeof(payload));
@@ -58,6 +58,7 @@ void loop() {
                 ESP_LOGE(TAG,
                          "Could not re-establish conneciton. Rebooting: %s",
                          esp_err_to_name(err));
+                close_tcp_socket();
                 exit(1);
             }
         }

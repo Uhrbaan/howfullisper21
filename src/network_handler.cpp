@@ -4,7 +4,6 @@
 #include <esp_wifi.h>
 
 static int err = 0;
-
 int connected_to_wifi = false;
 
 void wifi_event_handler(void* arg, esp_event_base_t event_base, int event_id,
