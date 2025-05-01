@@ -1,1 +1,4 @@
 firmware/.pio
+docs
+.env
+__pycache__

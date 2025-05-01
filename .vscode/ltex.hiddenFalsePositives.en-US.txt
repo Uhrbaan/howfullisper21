@@ -1,0 +1,1 @@
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\Q<!-- Copy from base.html --> {% extends 'base.html'%} {% block head %} <title>Home page</title> {% endblock %} {% block body %} <h1>Index Page</h1> <ul> {% for query in queries %} {% endfor %} </ul> {% endblock %}\\E$"}
