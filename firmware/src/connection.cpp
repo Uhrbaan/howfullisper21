@@ -1,16 +1,9 @@
+#include "connection.hpp"
+
 #include <M5Atom.h>
 #include <sys/socket.h>
 
 static int err;
-
-/**
- * @brief These values are here to configure the IP address of the server the
- * chip will connect to, and what port to use.
- *
- * TODO: make configuration from build options.
- */
-static const char *HOST_IP = "192.168.203.176";
-static const int HOST_PORT = 12345;
 
 static int sock;
 static sockaddr_in dest_addr = {0};
@@ -44,15 +37,10 @@ int create_tcp_socket() {
  *
  * @return ESP_OK if successful, ESP_FAIL if it failed to create the socket.
  */
-int init_tcp() {
-    const char *TAG = "INIT TCP";
-
+void init_tcp() {
     inet_pton(AF_INET, HOST_IP, &dest_addr.sin_addr);  // convert to binary
     dest_addr.sin_family = AF_INET;
     dest_addr.sin_port = htons(HOST_PORT);
-
-    err = create_tcp_socket();
-    return err;
 }
 
 /**
@@ -68,8 +56,7 @@ int connect_tcp_socket() {
     // connect to provided ip address
     err = connect(sock, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
     if (err != 0) {
-        ESP_LOGE(TAG, "Error connecting to %s:%d. Errno: %s", HOST_IP,
-                 HOST_PORT, strerror(errno));
+        ESP_LOGE(TAG, "Error connecting to %s:%d. Errno: %s", HOST_IP, HOST_PORT, strerror(errno));
         is_connected = false;
         return ESP_FAIL;
     }
@@ -115,6 +102,48 @@ int send_tcp(const char *buffer, size_t size) {
         return ESP_FAIL;
     }
     return ESP_OK;
+}
+
+#define RESPONSE_BUFFER_SIZE 4096  // Adjust as needed
+
+int receive_tcp(char *recv_buff) {
+    const char *TAG = "RECEIVE TCP";
+    char response_buffer[RESPONSE_BUFFER_SIZE];
+    size_t bytes_received;
+
+    if (sock == -1) {
+        ESP_LOGE(TAG, "Socket is not connected.");
+        return ESP_FAIL;
+    }
+
+    // Receive data from the socket
+    bytes_received = recv(sock, response_buffer, RESPONSE_BUFFER_SIZE - 1, 0);
+
+    if (bytes_received == -1) {
+        ESP_LOGE(TAG, "Error receiving data: %d", errno);
+        // Handle potential connection errors as in send_tcp
+        if (errno == EPIPE || errno == ECONNRESET) {
+            ESP_LOGE(TAG, "Connection broken during receive: %s", strerror(errno));
+            close(sock);
+            sock = -1;
+            is_connected = false;
+        }
+        return ESP_FAIL;
+    } else if (bytes_received == 0) {
+        ESP_LOGI(TAG, "Connection closed by the server.");
+        close(sock);
+        sock = -1;
+        is_connected = false;
+        return ESP_OK;  // Or perhaps a different code indicating closure
+    } else {
+        // Null-terminate the received data to treat it as a string
+        response_buffer[bytes_received] = '\0';
+        ESP_LOGI(TAG, "Received response:\n%s", response_buffer);
+
+        if (recv_buff != NULL) strncpy(recv_buff, response_buffer, 4096);
+
+        return ESP_OK;
+    }
 }
 
 /**
