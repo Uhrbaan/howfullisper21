@@ -7,10 +7,17 @@
  
  {% block body %}
  <h1>{{room.title()}}</h1>
- 
+ <h2>Recordings...</h2>
  <ul>
      {% for query in queries %}
      <li>{{query}}</li>
      {% endfor %}
+ </ul>
+
+ <h2>Occupancy...</h2>
+ <ul>
+    {% for occupancy in occupancies %}
+    <li>{{occupancy}}</li>
+    {% endfor %}
  </ul>
  {% endblock %}
