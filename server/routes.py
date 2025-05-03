@@ -1,5 +1,6 @@
 from flask import render_template, request, jsonify
 from models import BLEDevices
+from markupsafe import escape
 
 def register_routes(app, db):
     @app.route('/')
@@ -21,3 +22,10 @@ def register_routes(app, db):
             return jsonify({'message': 'Data received and stored successfully'}), 201
         else:
             return jsonify({'error': 'Invalid JSON data.'}), 400
+        
+    @app.route('/room/<room>')
+    def room(room):
+        room = escape(room)
+        query = db.select(BLEDevices).where(BLEDevices.room == room)
+        result = db.session.execute(query)
+        return render_template('room.html', queries=result, room=room)

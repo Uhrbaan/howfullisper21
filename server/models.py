@@ -13,7 +13,7 @@ class BLEDevices(db.Model):
     count: Mapped[int]
 
     def __repr__(self):
-        return f'id:{self.id}, room: {self.room}, time: {self.time}'
+        return f'id:{self.id}, time: {self.time}, room: {self.room}, count: {self.count}'
     
 # Table representing historical room occupancy
 # class Occupancy(db.Model):
