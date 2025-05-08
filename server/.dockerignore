@@ -1,0 +1,6 @@
+instance
+migrations
+__pycache__
+README.md
+Dockerfile
+.server-env

@@ -66,3 +66,12 @@ Most steps of the hardening of the server were followed according to
 The ssh port is on 22.
 
 The deployment will be done as suggested in [this Flask tutorial](https://youtu.be/oQ5UfJqW5Jo?si=hQU07xT6giZJRb40)
+
+## Populate db with random data
+To populate the db, you have a file called `populate-script.sql` in the root of the project.
+You have to upload this file to the container (if you are using one).
+Then, you can use the `sqlite3` utility to execute the script:
+
+```sh
+sqlite3 /path/to/database.db < populate-script.sql
+```

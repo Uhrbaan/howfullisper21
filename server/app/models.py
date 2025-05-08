@@ -30,27 +30,3 @@ class Occupancy(db.Model):
 
     def __repr__(self):
         return f"[{self.id}][{self.time}] Room '{self.room}' is occupied to {self.occupancy:.0%}."
-
-
-# NOTE: every time this scheme is updated, you have to run
-#   flask db migrate
-#   flask db upgrade
-
-# NOTE: you can fill some random data with the following command:
-
-# # Create some rooms
-# INSERT INTO room_info (room, capacity) VALUES
-# ('infolab 0', 20),
-# ('infolab 1', 20),
-# ('library', 100); # ...
-
-# # Create some occupancy information
-# INSERT INTO recordings (room, count) VALUES
-# ('infolab 0', 22),
-# ('infolab 1', 18); # ...
-
-# # Calculate the occupancy in the databse
-# INSERT INTO occupancy (time, room, occupancy) 
-# SELECT r.time, r.room, CAST(r.count AS REAL) / ri.capacity
-# FROM recordings r
-# JOIN room_info ri ON r.room == ri.room

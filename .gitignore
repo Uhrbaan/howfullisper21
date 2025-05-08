@@ -8,3 +8,4 @@ __pycache__
 *.tar
 instance
 server/migrations
+server/.server-env

@@ -1,56 +1,69 @@
-.PHONY: firmware server-debug server-build-docker server-remove-db server-stop-docker server-run-docker
-.ONESHELL: firmware server-debug server-build-docker server-remove-db server-stop-docker server-run-docker
+.PHONY: build-firmware debug-server build-server-docker clean-server-db stop-server-docker run-server-docker init-server-db migrate-server-db save-server-docker upload-remote-image load-remote-docker run-remote-docker stop-remote-docker deploy-server
+.ONESHELL: build-firmware debug-server build-server-docker clean-server-db stop-server-docker run-server-docker init-server-db migrate-server-db save-server-docker upload-remote-image load-remote-docker run-remote-docker stop-remote-docker deploy-server
 
 DOCKER_TAG := 999-flask-server-docker
 FLASK_PORT := 5000
 DOCKER_PORT := 5000
 DOCKER_IMG_TAR := $(DOCKER_TAG).tar.xz
 REMOTE_HOST := diufvm30
-REMOTE_LOCATION := ~/
+REMOTE_LOCATION := ~
+
+export FLASK_APP=run:create_app
 
 # build the firmware
-firmware:
+build-firmware:
 	cd firmware
 	pio run
 
 # local debugging options for the server
-server-debug:
+debug-server:
 	cd server
-	python3 -m flask run --host=0.0.0.0 --debug --port=$(FLASK_PORT)
+	python3 -m flask run --debug --port=$(FLASK_PORT)
 
-server-remove-db:
+init-server-db:
+	cd server
+	flask db init
+	flask db migrate
+	flask db upgrade
+
+migrate-server-db: # call this when model changes
+	cd server
+	flask db migrate
+	flask db upgrade
+
+clean-server-db:
 	cd server
 	rm -rf instance app/instance app/migrations app/__pycache__ __pycache__
 
 # local docker-related commands
-server-build-docker:
+build-server-docker:
 	cd server
 	docker build --tag $(DOCKER_TAG) .
 
-server-run-docker:
+run-server-docker:
 	docker run --detach=true --publish $(FLASK_PORT):$(DOCKER_PORT) $(DOCKER_TAG)
 
-server-stop-docker:
+stop-server-docker:
 	if docker stop $(shell docker ps -q --filter ancestor=$(DOCKER_TAG)); then \
 		echo "docker container was stopped."; \
 	else \
 		echo "docker container could not be stopped: it was not running. Continuing..."; \
 	fi
 
-server-save-docker:
-	docker save -o $(DOCKER_IMG_TAR) $(DOCKER_TAG)
+save-server-docker:
+	docker save -o $(DOCKER_IMG_TAR) $(DOCKER_TAG):latest
 
 # remote commands. You NEED to have your ssh keys configured for this.
-remote-upload-image:
+upload-remote-image:
 	scp $(DOCKER_IMG_TAR) $(REMOTE_HOST):$(REMOTE_LOCATION)
 
-remote-docker-load:
-	ssh $(REMOTE_HOST) cd $(REMOTE_LOCATION) && docker load -i $(DOCKER_IMG_TAR)
+load-remote-docker:
+	ssh $(REMOTE_HOST) docker load -i $(REMOTE_LOCATION)/$(DOCKER_IMG_TAR)
 
-remote-docker-run:
+run-remote-docker:
 	ssh $(REMOTE_HOST) docker run --detach=true --publish $(FLASK_PORT):$(DOCKER_PORT) $(DOCKER_TAG)
 
-remote-docker-stop:
+stop-remote-docker:
 	if ssh $(REMOTE_HOST) docker stop $$(ssh $(REMOTE_HOST) docker ps -q --filter ancestor=$(DOCKER_TAG)); then \
 		echo "The remote docker container was stopped."; \
 	else \
@@ -58,4 +71,11 @@ remote-docker-stop:
 	fi
 
 # shorthand
-server-deploy: remote-docker-stop server-remove-db server-build-docker server-save-docker remote-upload-image remote-docker-load remote-docker-run
+deploy-server: \
+	stop-remote-docker \
+	clean-server-db \
+	build-server-docker \
+	save-server-docker \
+	upload-remote-image \
+	load-remote-docker \
+	run-remote-docker

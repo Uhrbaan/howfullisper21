@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.13-slim
 WORKDIR /flask-app
 
 # copy dependencies over (there will be too many but who cares)
@@ -6,6 +6,7 @@ WORKDIR /flask-app
 # python libraries we need for the firmware
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
+RUN apt-get update && apt-get install -y sqlite3
 
 COPY . .
 
