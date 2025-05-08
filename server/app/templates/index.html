@@ -1,0 +1,30 @@
+ <!-- Copy from base.html -->
+{% extends 'base.html'%}
+
+{% block head %}
+<title>Home page</title>
+{% endblock %}
+
+{% block main %}
+<article>
+    <h1>Index Page</h1>
+
+    {% for room in rooms %}
+    <section>
+        <div class="card">
+            <img src="{{url_for('static', filename='png/room.png')}}" alt="room_tmp">
+            <div class="text">
+                <h2>
+                    <a href="/room/{{room}}">{{room.title()}}</a>
+                    <span class="material-symbols-outlined">computer</span>
+                </h2>
+
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magnam aliquam quaerat voluptatem.</p>
+                <p>Ut enim aeque doleamus animo, cum corpore dolemus, fieri tamen permagna accessio potest, si aliquod aeternum et infinitum impendere malum nobis opinemur.</p>
+                <p>Quod idem licet transferre in voluptatem, ut postea variari voluptas distinguique possit, augeri amplificarique non possit.</p>
+                <p>At etiam Athenis, ut e patre audiebam facete et.</p>
+            </div>
+        </div>
+    {% endfor %}
+</article>
+{% endblock %}

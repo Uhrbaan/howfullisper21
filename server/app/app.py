@@ -11,7 +11,7 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///./testdb.db'
     db.init_app(app)
 
-    from routes import register_routes
+    from app.routes import register_routes
     register_routes(app, db)
 
     migrate = Migrate(app, db)

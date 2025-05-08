@@ -1,4 +1,4 @@
-from app import db
+from app.app import db
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime
 from sqlalchemy import func
@@ -24,7 +24,7 @@ class RoomInfo(db.Model):
 # Table representing historical room occupancy
 class Occupancy(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
-    time: Mapped[datetime]
+    time: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     room: Mapped[str]
     occupancy: Mapped[float]
 

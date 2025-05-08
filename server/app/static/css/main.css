@@ -1,0 +1,130 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Imprima&family=Overlock:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    width: 100vw;
+    border-bottom: 2px solid;
+    padding-top: 1em;
+    border-color: var(--clr-primary-a10);
+
+    background-color: var(--clr-primary-a0);
+}
+
+header h1 {
+    font-family: "Caveat", cursive;
+    font-size: 4rem;
+    margin: 10px;
+    /* padding: 1rem; */
+}
+
+header a {
+    color: var(--clr-dark-a0);
+    text-decoration: none;
+}
+
+body {
+    background-color: var(--bg);
+
+    font-family: "Imprima", sans-serif;
+    font-size: 1em;
+
+    line-height: normal;
+}
+
+main {
+    min-height: 90vh;
+    max-width: 80em;
+    margin: auto;
+}
+
+body h2, h3, h4 {
+    font-family: "Overlock", sans-serif;
+}
+
+footer {
+    display: flex;
+    flex-wrap: wrap;
+
+    width: 100vw;
+    border-top: 2px solid;
+    background-color: var(--bg-dark); 
+    border-color: var(--clr-primary-a40);
+    justify-content: space-between;
+    align-items: baseline; 
+    font-size: 0.9em;
+}
+
+footer div {
+    padding: 10px;
+}
+
+.blurb {
+    max-width: 60%;
+}
+
+.authors ul {
+    list-style-type: none;
+    display: flex;
+    gap: 1em;
+}
+
+.authors li a {
+    color: var(--clr-dark-a0);
+    text-decoration: none;
+}
+
+.authors li a::before {
+    content: '© ';
+    vertical-align: -25%;
+}
+
+.authors li a .icon {
+    width: 1em;
+    height: 1em;
+    margin-left: 0.5em;
+    vertical-align: middle;
+}
+
+footer img {
+    height: 3em;
+}
+
+:root {
+    /** Base colors */
+    --clr-dark-a0: #000000;
+    --clr-light-a0: #ffffff;
+
+    /** Theme primary colors */
+    --clr-primary-a0: #fadd5c;
+    --clr-primary-a10: #edd262;
+    --clr-primary-a20: #dfc767;
+    --clr-primary-a30: #d2bd6c;
+    --clr-primary-a40: #c4b270;
+    --clr-primary-a50: #b7a874;
+
+    /** Theme surface colors */
+    --clr-surface-a0: #fcf7e1;
+    --clr-surface-a10: #eee9d6;
+    --clr-surface-a20: #dfdbcb;
+    --clr-surface-a30: #d1cec0;
+    --clr-surface-a40: #c3c0b5;
+    --clr-surface-a50: #b5b3aa;
+
+    /** Theme tonal surface colors */
+    --clr-surface-tonal-a0: #fdf4d4;
+    --clr-surface-tonal-a10: #eee6ca;
+    --clr-surface-tonal-a20: #e0d9c1;
+    --clr-surface-tonal-a30: #d2ccb7;
+    --clr-surface-tonal-a40: #c4bfae;
+    --clr-surface-tonal-a50: #b6b2a4;
+
+    /* Better names */
+    --bg: var(--clr-surface-tonal-a0);
+    --bg-dark: var(--clr-surface-tonal-a10);
+    --fg: var(--clr-dark-a0);
+    --fg-light: var(--clr-primary-a50)
+}

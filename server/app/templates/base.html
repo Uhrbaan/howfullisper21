@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/main.css')}}">  
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/cards.css')}}">  
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <!-- Jinja template language -->
+    {% block head %}
+    <title>Default</title>
+    {% endblock %}
+</head>
+<body>
+    <header>
+        {% block header %}
+        <h1><a href="/">How-full-is-PER-21.ch</a></h1>
+        {% endblock %}
+    </header>
+    <nav>
+        {% block nav %}
+            
+        {% endblock %}
+    </nav>
+    <main>
+        {% block main %}
+        <!-- contains articles -->
+        {% endblock %}
+    </main>
+    <footer>
+        <div>
+            <img src="https://cdn.unifr.ch/uf/v2.4.3/gfx/logo.png" alt="uniFR logo">
+        <div class="blurb">
+            <p>
+                This project was realized for the SOP-2025 course. 
+                It was built using <a href="https://flask.palletsprojects.com/en/stable/">Flask</a>.
+            </p>
+        </div>
+        <div class="authors">
+            <ul>
+                <li><a href="">Mathilda Muster</a></li>
+                <li><a href="">Vania Piller</a></li>
+                <li><a href="">Han Kieu</a></li>
+                <li><a href="https://tooting.ch/@leonardurban">
+                    Léonard Clément
+                    <img class="icon" src="https://joinmastodon.org/logos/logo-black.svg" alt="mastodon icon">
+                </a></li>
+            </ul>
+        </div>
+    </footer>
+
+</body>
+</html>
