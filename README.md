@@ -226,4 +226,4 @@ doxygen doxyfile # if you want to run it directly
 
 > Note: you will need Doxygen to generate the documentation. You can install it at <https://www.doxygen.nl/download.html> or install it from your package manager.
 
-Once you have built the documentation, the `index.html` can be found in `docs/html/index.html`.
+The documentation can then be found on the web page, there is a 'Documentation' link in the footer.

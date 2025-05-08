@@ -12,7 +12,7 @@ POPULATE_SQL_FILE := populate-script.sql
 export FLASK_APP=run:create_app
 
 build-docs:
-	doxygen doxyfile
+	doxygen Doxyfile
 
 # build the firmware
 build-firmware:
