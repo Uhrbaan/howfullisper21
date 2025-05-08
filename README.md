@@ -6,6 +6,16 @@ the number of surrounding Bluetooth devices to estimate how many people are in a
 This information is then sent to a server, which calculates the occupancy of the room and displays it on a website.
 
 ## Table of contents
+- [999 (pronounced How-full-is-PER21)](#999-pronounced-how-full-is-per21)
+  - [Table of contents](#table-of-contents)
+  - [Overview](#overview)
+    - [Firmware](#firmware)
+    - [Server](#server)
+    - [`Makefile`](#makefile)
+  - [Tech stack](#tech-stack)
+  - [Dependencies](#dependencies)
+  - [Building](#building)
+  - [Documentation](#documentation)
 
 ## Overview
 The (simplified) file structure of the project looks as follows:
@@ -55,10 +65,10 @@ Here is a simplified overview of the file structure of the `server` folder:
 server/
 ├── app/
 │   ├── static/
-│   └── templates/
-│       ├── base.html
-│       ├── index.html
-│       └── room.html
+│   ├── templates/
+│   │   ├── base.html
+│   │   ├── index.html
+│   │   └── room.html
 │   ├── __init__.py
 │   ├── app.py
 │   ├── models.py

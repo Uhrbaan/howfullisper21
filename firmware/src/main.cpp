@@ -6,9 +6,7 @@
 // #include <esp_wifi.h>
 #include <string.h>
 
-#include "connection.hpp"
-#include "network_handler.hpp"
-#include "wifi.hpp"
+#include "connectivity.hpp"
 
 static const char* TAG = "WIFI EXAMPLE";
 static int err = 0;
