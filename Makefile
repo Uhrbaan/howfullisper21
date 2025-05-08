@@ -3,12 +3,16 @@
 
 DOCKER_TAG := 999-flask-server-docker
 FLASK_PORT := 5000
-DOCKER_PORT := 5000
+DOCKER_PORT := 80# default for the http protocol → the user won't have to enter it
 DOCKER_IMG_TAR := $(DOCKER_TAG).tar.xz
 REMOTE_HOST := diufvm30
 REMOTE_LOCATION := ~
+POPULATE_SQL_FILE := populate-script.sql
 
 export FLASK_APP=run:create_app
+
+build-docs:
+	doxygen doxyfile
 
 # build the firmware
 build-firmware:
@@ -20,6 +24,10 @@ debug-server:
 	cd server
 	python3 -m flask run --debug --port=$(FLASK_PORT)
 
+clean-server-db:
+	cd server
+	rm -rf instance app/instance app/migrations app/__pycache__ __pycache__
+
 init-server-db:
 	cd server
 	flask db init
@@ -30,10 +38,6 @@ migrate-server-db: # call this when model changes
 	cd server
 	flask db migrate
 	flask db upgrade
-
-clean-server-db:
-	cd server
-	rm -rf instance app/instance app/migrations app/__pycache__ __pycache__
 
 # local docker-related commands
 build-server-docker:
@@ -61,7 +65,7 @@ load-remote-docker:
 	ssh $(REMOTE_HOST) docker load -i $(REMOTE_LOCATION)/$(DOCKER_IMG_TAR)
 
 run-remote-docker:
-	ssh $(REMOTE_HOST) docker run --detach=true --publish $(FLASK_PORT):$(DOCKER_PORT) $(DOCKER_TAG)
+	ssh $(REMOTE_HOST) docker run --detach=true --publish $(DOCKER_PORT):$(FLASK_PORT) $(DOCKER_TAG)
 
 stop-remote-docker:
 	if ssh $(REMOTE_HOST) docker stop $$(ssh $(REMOTE_HOST) docker ps -q --filter ancestor=$(DOCKER_TAG)); then \
@@ -69,6 +73,10 @@ stop-remote-docker:
 	else \
 		echo "The remote docker container could not be stopped: it was not running. Coninuing..."; \
 	fi
+
+populate-remote-db:
+	scp $(POPULATE_SQL_FILE) $(REMOTE_HOST):$(REMOTE_LOCATION)/$(POPULATE_SQL_FILE)
+	ssh $(REMOTE_HOST) "docker exec -i $(shell ssh $(REMOTE_HOST) docker ps -q) sqlite3 instance/sqlite.db < populate-script.sql"
 
 # shorthand
 deploy-server: \
