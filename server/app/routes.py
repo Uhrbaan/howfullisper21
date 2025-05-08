@@ -1,12 +1,30 @@
+"""
+This file defines the routes and view functions for the Flask application.
+It handles requests for the homepage, data collection from sensors, and displaying room-specific information.
+"""
 from flask import render_template, request, jsonify
 from app.models import Recordings, Occupancy, RoomInfo
 from markupsafe import escape
-from sqlalchemy import text
 from sqlalchemy.sql import func
 
 def register_routes(app, db):
+    """
+    Registers the routes for the Flask application.
+
+    Args:
+        app (Flask): The Flask application instance.
+        db (SQLAlchemy): The SQLAlchemy database instance.
+    """
     @app.route('/')
     def index():
+        """
+        Renders the homepage, displaying a list of available rooms.
+
+        It queries the database for all unique room names from the RoomInfo table.
+
+        Returns:
+            flask.Response: The rendered 'index.html' template with the list of rooms.
+        """
         query = db.select(RoomInfo.room)
         rooms = db.session.execute(query).scalars().all()
         print(f"Something connected: {request.headers}")
@@ -15,6 +33,20 @@ def register_routes(app, db):
     # curl --request POST http://127.0.0.1:5000/collect?room=INFOLAB0&count=7
     @app.route('/collect', methods=['POST', 'GET'])
     def collect():
+        """
+        Endpoint for collecting data from sensor devices.
+
+        Handles both POST requests with JSON data and GET requests with URL parameters
+        to record room occupancy data. It stores the raw data in the Recordings table
+        and calculates the occupancy percentage, which is then stored in the Occupancy table.
+
+        For POST requests, it expects a JSON payload with 'room' (string) and 'count' (integer) fields.
+        For GET requests, it expects URL parameters 'room' (string) and 'count' (integer).
+
+        Returns:
+            jsonify: A JSON response indicating success or an error.
+            int: The HTTP status code (201 for success, 400 for error).
+        """
         room: str = ''
         count: int = 0
 
@@ -49,6 +81,19 @@ def register_routes(app, db):
         
     @app.route('/room/<room>')
     def room(room):
+        """
+        Renders the page for a specific room, displaying its recording history and current occupancy.
+
+        It retrieves all recordings and occupancy data for the given room from the database.
+        It also fetches the room's capacity and calculates the estimated number of people
+        based on the latest occupancy reading.
+
+        Args:
+            room (str): The name of the room to display.
+
+        Returns:
+            flask.Response: The rendered 'room.html' template with the room's data.
+        """
         room = escape(room)
         query = db.select(Recordings).where(Recordings.room == room)
         recordings = db.session.execute(query).scalars().all()
