@@ -3,7 +3,6 @@ docs
 .env
 __pycache__
 *.db
-*.sql
 *.tar.xz
 *.tar
 instance
