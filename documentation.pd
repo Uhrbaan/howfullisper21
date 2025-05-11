@@ -1,0 +1,288 @@
+<h1 id="999-pronounced-how-full-is-per21">999 (pronounced
+How-full-is-PER21)</h1>
+<p>This project was realized during the course "System Orient
+Programming" at the university of Fribourg. Its goal was to estimate the
+occupancy of different study rooms across the UniFR campus. The project
+uses the <a
+href="https://docs.m5stack.com/en/core/ATOM%20Lite">Atom-lite from
+M5Stack</a> to track the number of surrounding Bluetooth devices to
+estimate how many people are in a room. This information is then sent to
+a server, which calculates the occupancy of the room and displays it on
+a website.</p>
+<h2 id="table-of-contents">Table of contents</h2>
+<ul>
+<li><a href="#999-pronounced-how-full-is-per21">999 (pronounced
+How-full-is-PER21)</a>
+<ul>
+<li><a href="#table-of-contents">Table of contents</a></li>
+<li><a href="#overview">Overview</a>
+<ul>
+<li><a href="#firmware">Firmware</a></li>
+<li><a href="#server">Server</a></li>
+<li><a href="#makefile"><code>Makefile</code></a></li>
+</ul></li>
+<li><a href="#tech-stack">Tech stack</a></li>
+<li><a href="#dependencies">Dependencies</a></li>
+<li><a href="#building">Building</a></li>
+<li><a href="#documentation">Documentation</a></li>
+</ul></li>
+</ul>
+<h2 id="overview">Overview</h2>
+<p>The (simplified) file structure of the project looks as follows:</p>
+<pre><code>├── firmware/
+├── server/
+├── Makefile
+└── README.md</code></pre>
+<p>The project is separated in two main parts: <code>firmware</code> and
+<code>server</code>. Each section resides in its corresponding folder.
+The <code>firmware</code> folder contains all the files needed to
+program/flash the atom-lite, and the <code>server</code> folder contains
+all the code to build and deploy the central server.</p>
+<h3 id="firmware">Firmware</h3>
+<p>Here is a simplified overview of the file structure of the
+<code>firmware</code> folder:</p>
+<pre><code>firmware/
+├── src/
+├── include/
+├── lib/
+├── test/
+├── platformio.ini
+└── README.md</code></pre>
+<p>The firmware of the project uses <a
+href="https://platformio.org/">PlatformIO</a> as its build system, and
+thus shares the typical file structure of a PlatformIO project. The
+<code>platformio.ini</code> file contains all the configurations and
+dependencies needed for PlatformIO. The <code>src</code> folder is the
+hearth of the program: it is where most of the code is written. The
+<code>include</code> folder contains the corresponding <code>.hpp</code>
+or <code>.h</code> files to the ones found in the <code>src</code>
+folder. The <code>lib</code> folder contains any libraries external to
+the PlatformIO system, it is empty. The <code>test</code> folder
+contains any tests related to the firmware.</p>
+<p>The firmware itself is conceptually divided into two parts. The first
+one contains all the networking function of the chip, and enables it to
+communicate with the central server. The second part contains all the
+Bluetooth functionality and counts the number of Bluetooth devices.</p>
+<p><strong>TODO: reorganize the code of firmware and explain clearly
+what each file is supposed to do.</strong></p>
+<h3 id="server">Server</h3>
+<p>Here is a simplified overview of the file structure of the
+<code>server</code> folder:</p>
+<pre><code>server/
+├── app/
+│   ├── static/
+│   ├── templates/
+│   │   ├── base.html
+│   │   ├── index.html
+│   │   └── room.html
+│   ├── __init__.py
+│   ├── app.py
+│   ├── models.py
+│   └── routes.py
+├── instance/
+│   └── sqlite.db
+├── migrations/
+├── run.py
+├── requirements.txt
+├── Dockerfile
+└── README.md
+</code></pre>
+<p>The server is build using <a
+href="https://flask.palletsprojects.com/en/stable/">Flask</a> as the
+server engine and uses <a
+href="https://sqlite.org/index.html">SQLite</a> for the database and <a
+href="https://www.sqlalchemy.org/">SQL-alchemy</a> for the ORM. The HTML
+pages are built with <a
+href="https://jinja.palletsprojects.com/en/stable/">Jinja 2</a>.</p>
+<p><code>run.py</code> is the entry point to the program, the rest of
+the code is contained in the <code>app</code> folder. The
+<code>static</code> folder contains all the static elements of the
+webpage, like pictures, JS scrips or stylesheets.
+<code>__init.py__</code> doesn't contain anything, it just declares the
+<code>app</code> folder as a module. <code>app.py</code> codes the
+initialization of the flask server. <code>models.py</code> contains all
+the code defining the tables of the SQLite database the server uses.
+<code>routes.py</code> handles connections made to the server. It
+defines what the server does on requests (like calculating occupancy
+when it receives data from the Atom-lite) and renders the HTML
+templates.</p>
+<p>The <code>templates</code> folder contains all the Jinja2 template
+HTML files. <code>base.html</code> contains the basic structure of the
+all the HTML files (all the other HTML templates extend
+<code>base.html</code>). <code>index.html</code> contains the contents
+of the home page. <code>room.html</code> contains the contents of the
+room page.</p>
+<p>The <code>instance</code> and <code>migrations</code> folder are
+folders required by flask to manage its database. The database itself is
+located at <code>instance/sqlite.db</code>. It is contained in a single
+file. If you wish interacting with the database directly, I can
+recommend tools like <a
+href="https://sqlite.org/cli.html"><code>sqlite3</code></a> or <a
+href="https://dbeaver.io/">DBeaver Community</a> if you prefer a
+GUI.</p>
+<p>The <code>requirements.txt</code> file contains all the dependencies
+required to launch the Flask server. You can install all the
+dependencies by running:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span></code></pre></div>
+<p><code>Dockerfile</code> contains all the instructions to create a
+docker container containing the flask app. This simplifies the
+deployment of the application.</p>
+<h3 id="makefile"><code>Makefile</code></h3>
+<p>The entire project is coordinated with the <code>Makefile</code> at
+the root of the project. Multiple targets are used to execute specific
+tasks without needing a deep understanding of multiple tools.</p>
+<p>Here is a list of available targets:</p>
+<ul>
+<li><code>build-docs</code>: generates the documentation using
+Doxygen.</li>
+<li><code>build-firmware</code>: builds and uploads the firmware to the
+Atom-lite using PlatformIO.</li>
+<li><code>debug-server</code>: runs the flask server locally in debug
+mode. You can the view it on <a
+href="http://127.0.0.1:5000/">http://127.0.0.1:5000/</a>.</li>
+<li><code>clean-server-db</code>: removes all the database and
+migration-related files.</li>
+<li><code>init-server-db</code>: initializes the database.</li>
+<li><code>migrate-server-db</code>: updates the database. This is
+necessary if you change anything in <code>models.py</code>.</li>
+<li><code>build-server-docker</code>: this calls docker to build the
+docker image.</li>
+<li><code>run-server-docker</code>: runs the generated docker image
+locally. You can access it on <a
+href="http://localhost">http://localhost</a>.</li>
+<li><code>stop-server-docker</code>: stop any locally running docker
+image.</li>
+<li><code>save-server-docker</code>: compresses the docker image to a
+tar file that you can upload easily to a remote server.</li>
+<li><code>upload-remote-image</code>: uploads the tar file to the remote
+server (defined in the Makefile).</li>
+<li><code>load-remote-docker</code>: updates the remote docker image
+with the tar file we just uploaded.</li>
+<li><code>run-remote-docker</code>: runs the docker container containing
+our app remotely. It is accessible at <a
+href="http://diufvm30">http://diufvm30</a>.</li>
+<li><code>stop-remote-docker</code>: stops the docker container running
+remotely (if there is one).</li>
+<li><code>populate-remote-db</code>: this target is used to populate the
+remote server with junk data according to the
+<code>populate-script.sql</code> file.</li>
+<li><code>deploy-server</code>: this target builds, compresses, uploads,
+and runs the flask application - it deploys it.</li>
+</ul>
+<p>Any target can be called from the root of the project (where the
+<code>Makefile</code> is located) using:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> target</span></code></pre></div>
+<h2 id="tech-stack">Tech stack</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Technology</th>
+<th>Description (ai-generated)</th>
+<th>Use in the project</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>PlatformIO</td>
+<td>PlatformIO is an open-source ecosystem for IoT development, offering
+cross-platform build automation, library management, and serial port
+monitoring.</td>
+<td>Used as the build-system for the firmware part of our project.</td>
+</tr>
+<tr class="even">
+<td>Flask</td>
+<td>Flask is a lightweight and flexible Python web framework designed
+for building web applications quickly with minimal code.</td>
+<td>Used as the web engine in our server</td>
+</tr>
+<tr class="odd">
+<td>SQLite</td>
+<td>SQLite is a self-contained, serverless, zero-configuration,
+transactional SQL database engine.</td>
+<td>Database we use on our server.</td>
+</tr>
+<tr class="even">
+<td>Jinja 2</td>
+<td>Jinja 2 is a fast, widely used, and expressive template engine for
+Python.</td>
+<td>The template language in use for creating the web pages.</td>
+</tr>
+<tr class="odd">
+<td>SQLAlchemy</td>
+<td>SQLAlchemy is a powerful and flexible Python SQL toolkit and
+Object-Relational Mapper that provides a full suite of persistence
+patterns.</td>
+<td>ORM used in the server to interact with the database.</td>
+</tr>
+<tr class="even">
+<td>Docker</td>
+<td>Docker is a platform for developing, shipping, and running
+applications in isolated containers.</td>
+<td>Used to containerize and deploy our flask application.</td>
+</tr>
+<tr class="odd">
+<td>Doxygen</td>
+<td>Doxygen is a documentation generator for C++, C, Java, Python, and
+other programming languages.</td>
+<td>Used to generate all the documentation in the project.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="dependencies">Dependencies</h2>
+<p>Because both the firmware and the server use python and python
+packages to build themselves, you can install all the dependencies using
+the following command:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3</span> <span class="at">-m</span> venv .env <span class="co"># create a virtual environment to install the packages to</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .env/bin/activate <span class="co"># activate the virtual environment</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt <span class="co"># install all the python dependencies</span></span></code></pre></div>
+<p>You will also need <code>make</code> if you wish to use the
+<code>Makefile</code>:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ubuntu/debian</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt install make</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># macos</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="ex">xcode-select</span> <span class="at">--install</span> <span class="co"># comes pre-packaged with other development tools</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"># windows: just use wsl 😅</span></span></code></pre></div>
+<p>You will also need <a href="https://www.docker.com/">Docker</a> if
+you need to deploy the server. Please follow the instructions on the
+docker website (<a
+href="https://docs.docker.com/desktop/setup/install/linux/">Linux</a>,
+<a
+href="https://docs.docker.com/desktop/setup/install/mac-install/">macOS</a>).</p>
+<h2 id="building">Building</h2>
+<p>To build the firmware, just run:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> build-firmware</span></code></pre></div>
+<p>To launch the server locally, run:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> debug-server</span></code></pre></div>
+<blockquote>
+<p>Note: you might need to set an environment variable first. Simply
+do:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode sh"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">FLASK_APP</span><span class="op">=</span><span class="st">&quot;run:create_app&quot;</span></span></code></pre></div>
+</blockquote>
+<p>To deploy the server, run:</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode sh"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> deploy-server</span></code></pre></div>
+<p>If you wish, you can also build the firmware and server directly. To
+build the firmware, first go to the firmware directory and run:</p>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode sh"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pio</span> run</span></code></pre></div>
+<p>Or run it through the <a
+href="https://platformio.org/install/ide?install=vscode">PlatformIO
+IDE</a>. To run the server directly, you can run:</p>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode sh"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ex">flask</span> <span class="at">--app</span> run:create_app run <span class="co"># and options like --host or --debug</span></span></code></pre></div>
+<h2 id="documentation">Documentation</h2>
+<p>The documentation is generated with <a
+href="https://www.doxygen.nl/">Doxygen</a>. To generate it, run:</p>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode sh"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> build-docs</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co"># or</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="ex">doxygen</span> doxyfile <span class="co"># if you want to run it directly</span></span></code></pre></div>
+<blockquote>
+<p>Note: you will need Doxygen to generate the documentation. You can
+install it at <a
+href="https://www.doxygen.nl/download.html">https://www.doxygen.nl/download.html</a>
+or install it from your package manager.</p>
+</blockquote>
+<p>The documentation can then be found on the web page, there is a
+'Documentation' link in the footer.</p>

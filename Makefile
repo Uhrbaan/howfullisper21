@@ -7,7 +7,7 @@ DOCKER_PORT := 80# default for the http protocol → the user won't have to ente
 DOCKER_IMG_TAR := $(DOCKER_TAG).tar.xz
 REMOTE_HOST := diufvm30
 REMOTE_LOCATION := ~
-POPULATE_SQL_FILE := populate-script.sql
+POPULATE_SCRIPT := 'populate-script.sql'
 
 export FLASK_APP=run:create_app
 
@@ -75,11 +75,13 @@ stop-remote-docker:
 	fi
 
 populate-remote-db:
-	scp $(POPULATE_SQL_FILE) $(REMOTE_HOST):$(REMOTE_LOCATION)/$(POPULATE_SQL_FILE)
-	ssh $(REMOTE_HOST) "docker exec -i $(shell ssh $(REMOTE_HOST) docker ps -q) sqlite3 instance/sqlite.db < populate-script.sql"
+	scp $(POPULATE_SCRIPT) $(REMOTE_HOST):$(REMOTE_LOCATION)/$(POPULATE_SCRIPT)
+	ssh $(REMOTE_HOST) "docker cp $(POPULATE_SCRIPT) $$(ssh $(REMOTE_HOST) docker ps -q --filter ancestor=$(DOCKER_TAG)):$(POPULATE_SCRIPT)"
+	ssh $(REMOTE_HOST) "docker exec -i $(shell ssh $(REMOTE_HOST) docker ps -q) sqlite3 instance/sqlite.db < $(POPULATE_SCRIPT)"
 
 # shorthand
 deploy-server: \
+	build-docs \
 	stop-remote-docker \
 	clean-server-db \
 	build-server-docker \

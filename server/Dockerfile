@@ -1,9 +1,6 @@
 FROM python:3.13-slim
 WORKDIR /flask-app
 
-# generate documentation
-RUN doxygen ../Doxyfile
-
 # copy dependencies over (there will be too many but who cares)
 # if we want to do it right, we should create a second venv that excludes the
 # python libraries we need for the firmware

@@ -19,8 +19,12 @@
 #include <errno.h>
 #include <esp_event.h>
 #include <esp_netif.h>
+#include <esp_tls.h>
 #include <esp_wifi.h>
+#include <esp_wpa2.h>
 #include <sys/socket.h>
+
+#include "secrets.hpp"
 
 #define RESPONSE_BUFFER_SIZE 4096  ///< Adjust as needed for the TCP response buffer size.
 
@@ -66,12 +70,26 @@ int init_wifi() {
         return err;
     }
 
+    // network-related handlers
     err = esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL);
     err = esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, &ip_event_handler, NULL);
 
-    wifi_config_t wifi_config = {.sta = {.ssid = {'u', 'h', 'r', 'b', 'a', 'a', 'n', 0},
-                                         .password = {'1', '2', '3', '4', '5', '6', '7', '8', 0},
-                                         .threshold = {.authmode = WIFI_AUTH_WPA_PSK}}};
+    esp_wifi_sta_wpa2_ent_set_identity((uint8_t*)wpa_ent_identity, strlen(wpa_ent_identity));
+    esp_wifi_sta_wpa2_ent_set_username((uint8_t*)wpa_ent_username, strlen(wpa_ent_username));
+    esp_wifi_sta_wpa2_ent_set_password((uint8_t*)wpa_ent_password, strlen(wpa_ent_password));
+
+    // Set the CA certificate
+    esp_wifi_sta_wpa2_ent_set_ca_cert(
+        (const unsigned char*)digicert_global_root_g2_pem,
+        strlen(digicert_global_root_g2_pem) + 1);  // +1 to include null terminator
+
+    wifi_config_t wifi_config = {
+        .sta =
+            {
+                .ssid = {'e', 'd', 'u', 'r', 'o', 'a', 'm', 0},
+                .threshold = {.authmode = WIFI_AUTH_WPA2_ENTERPRISE},
+            },
+    };
 
     err = esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
     if (err != ESP_OK) {

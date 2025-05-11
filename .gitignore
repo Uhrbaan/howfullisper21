@@ -9,3 +9,5 @@ __pycache__
 instance
 server/migrations
 server/.server-env
+secrets.cpp
+Site_web/venv
