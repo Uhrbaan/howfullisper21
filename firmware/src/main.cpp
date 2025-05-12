@@ -50,23 +50,7 @@ static bool connected = false;
 char response_buff[RESPONSE_BUFFER_SIZE] = {0};
 char payload[RESPONSE_BUFFER_SIZE] = {0};
 
-// This loop continuesly checks if the button was pressed, and once it is
-// pressed, sends a "Hellow, World!\n" message to the server it tries to connect
-// to. You can listen to the output of the function with netcat.
-void generate_payload(const char* room, int count) {
-    static char json_data[256] = {0};
-
-    snprintf(json_data, 256, "{\n\t\"room\": \"%s\",\n\t\"count\": %d\n}", room, count);
-
-    snprintf(payload, RESPONSE_BUFFER_SIZE,
-             "POST /collect HTTP/1.1\n"
-             "Host: %s:%s\n"
-             "Content-Length: %d\n"
-             "Content-Type: application/json\n"
-             "\n"
-             "%s",
-             HOST_IP, HOST_PORT_STR, strlen(json_data), json_data);
-}
+static const char* dst_address = "duifvm30";
 
 void loop() {
     if (M5.Btn.wasPressed()) {
@@ -93,8 +77,7 @@ void loop() {
         }
 
         // 3. send data
-        generate_payload("INFOLAB0", rand() % 100);
-        err = send_tcp(payload, strlen(payload) * sizeof(char));
+        generate_post_request(payload, sizeof(payload), dst_address, 80, "test", 0);
         if (err != ESP_OK) {
             ESP_LOGE(TAG, "Could not send payload over tcp, skipping: %s", esp_err_to_name(err));
             goto close_socket;

@@ -17,6 +17,7 @@
 #include <SPI.h>
 #include <driver/uart.h>
 #include <errno.h>
+#include <esp_eap_client.h>
 #include <esp_event.h>
 #include <esp_netif.h>
 #include <esp_tls.h>
@@ -53,14 +54,37 @@ static bool is_connected =
 int init_wifi() {
     const char* TAG = "WIFI INIT";
 
-    esp_netif_init();
-    esp_event_loop_create_default();
-    esp_netif_create_default_wifi_sta();
+    err = esp_netif_init();
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to initilize netif: %s", esp_err_to_name(err));
+        return err;
+    }
+
+    err = esp_event_loop_create_default();
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to create default envent loop: %s", esp_err_to_name(err));
+        return err;
+    }
+
+    esp_netif_t* sta_netif = esp_netif_create_default_wifi_sta();
+
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
 
     err = esp_wifi_init(&cfg);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to initialize Wi-Fi: %s", esp_err_to_name(err));
+        return err;
+    }
+
+    err = esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to link wifi event handler: %s", esp_err_to_name(err));
+        return err;
+    }
+
+    err = esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, &ip_event_handler, NULL);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to link ip event handler: %s", esp_err_to_name(err));
         return err;
     }
 
@@ -70,28 +94,50 @@ int init_wifi() {
         return err;
     }
 
-    // network-related handlers
-    err = esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL);
-    err = esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, &ip_event_handler, NULL);
-
-    esp_wifi_sta_wpa2_ent_set_identity((uint8_t*)wpa_ent_identity, strlen(wpa_ent_identity));
-    esp_wifi_sta_wpa2_ent_set_username((uint8_t*)wpa_ent_username, strlen(wpa_ent_username));
-    esp_wifi_sta_wpa2_ent_set_password((uint8_t*)wpa_ent_password, strlen(wpa_ent_password));
-
-    // Set the CA certificate
-    esp_wifi_sta_wpa2_ent_set_ca_cert(
-        (const unsigned char*)digicert_global_root_g2_pem,
-        strlen(digicert_global_root_g2_pem) + 1);  // +1 to include null terminator
-
-    wifi_config_t wifi_config = {
-        .sta =
-            {
-                .ssid = {'e', 'd', 'u', 'r', 'o', 'a', 'm', 0},
-                .threshold = {.authmode = WIFI_AUTH_WPA2_ENTERPRISE},
-            },
-    };
+    wifi_config_t wifi_config = {0};
+    strcpy((char*)wifi_config.sta.ssid, ssid);
+    wifi_config.sta.pmf_cfg.required = true;
 
     err = esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to register wifi configuration: %s", esp_err_to_name(err));
+        return err;
+    }
+
+    err = esp_wifi_set_storage(WIFI_STORAGE_RAM);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Could not change wifi storage to RAM: %s", esp_err_to_name(err));
+        return err;
+    }
+
+    // configure wpa
+    err = esp_wifi_sta_wpa2_ent_set_identity((uint8_t*)wpa_ent_identity, strlen(wpa_ent_identity));
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to set wpa identity: %s", esp_err_to_name(err));
+        return err;
+    }
+    err = esp_wifi_sta_wpa2_ent_set_username((uint8_t*)wpa_ent_username, strlen(wpa_ent_username));
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to set wpa username: %s", esp_err_to_name(err));
+        return err;
+    }
+    err = esp_wifi_sta_wpa2_ent_set_password((uint8_t*)wpa_ent_password, strlen(wpa_ent_password));
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to set wpa password: %s", esp_err_to_name(err));
+        return err;
+    }
+
+    // Set the TTLS phase 2 method
+    err = esp_peap
+
+        // TODO: go back to wpa2_ent authentification later.
+
+        // // Set the CA certificate
+        // esp_wifi_sta_wpa2_ent_set_ca_cert(
+        //     (const unsigned char*)digicert_global_root_g2_pem,
+        //     strlen(digicert_global_root_g2_pem) + 1);  // +1 to include null terminator
+
+        err = esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to set Wi-Fi config: %s", esp_err_to_name(err));
         return err;
@@ -105,6 +151,76 @@ int init_wifi() {
 
     ESP_LOGI(TAG, "Started Wi-Fi in sta mode. Attempting to connect to '%s'", wifi_config.sta.ssid);
     return ESP_OK;
+}
+
+/**
+ * @brief Event handler for Wi-Fi events.
+ *
+ * This function is called by the ESP-IDF event loop when a Wi-Fi related event
+ * occurs. It handles events such as station start, disconnection, and connection.
+ *
+ * @param arg User-defined argument (not used here).
+ * @param event_base The base ID of the event (WIFI_EVENT).
+ * @param event_id The ID of the specific Wi-Fi event.
+ * @param event_data Pointer to the event-specific data.
+ */
+void wifi_event_handler(void* arg, esp_event_base_t event_base, int event_id, void* event_data) {
+    const char* TAG = "WIFI EVENT HANDLER";
+    switch (event_id) {
+        case WIFI_EVENT_STA_START:
+            err = esp_wifi_connect();
+            if (err != ESP_OK) {
+                ESP_LOGE(TAG, "Error in wifi_event_handler: %s\n", esp_err_to_name(err));
+            }
+            ESP_LOGI(TAG, "Attempting to connect to Wifi...\n");
+            M5.dis.drawpix(0, 0x0000ff);  // Blue: Connecting
+            break;
+
+        case WIFI_EVENT_STA_DISCONNECTED:
+            connected_to_wifi = false;
+            ESP_LOGI(TAG, "Disconected from Wifi. Retrying..\n");
+            err = esp_wifi_connect();
+            if (err != ESP_OK) {
+                ESP_LOGE(TAG, "Error in wifi_event_handler: %s\n", esp_err_to_name(err));
+            }
+            M5.dis.drawpix(0, 0xff0000);  // Red: Disconnected
+            break;
+
+        case WIFI_EVENT_STA_CONNECTED:
+            connected_to_wifi = true;
+            ESP_LOGI(TAG, "Connected to wifi.");
+            M5.dis.drawpix(0, 0x00ff00);  // Green: Connected
+            break;
+
+        default:
+            break;
+    }
+    M5.update();
+}
+
+/**
+ * @brief Event handler for IP events.
+ *
+ * This function is called by the ESP-IDF event loop when an IP related event
+ * occurs. It handles events such as the acquisition of an IP address.
+ *
+ * @param arg User-defined argument (not used here).
+ * @param event_base The base ID of the event (IP_EVENT).
+ * @param event_id The ID of the specific IP event.
+ * @param event_data Pointer to the event-specific data.
+ */
+void ip_event_handler(void* arg, esp_event_base_t event_base, int event_id, void* event_data) {
+    const char* TAG = "IP EVENT HANDLER";
+    switch (event_id) {
+        case IP_EVENT_STA_GOT_IP: {
+            ip_event_got_ip_t* event = (ip_event_got_ip_t*)event_data;
+            ESP_LOGI(TAG, "Got IP address:" IPSTR, IP2STR(&event->ip_info.ip));
+            break;
+        }
+
+        default:
+            break;
+    }
 }
 
 /**
@@ -267,71 +383,31 @@ int receive_tcp(char* recv_buff) {
 int close_tcp_socket() { return (close(sock) == 0) ? ESP_OK : ESP_FAIL; }
 
 /**
- * @brief Event handler for Wi-Fi events.
+ * @brief Creates an HTTP POST request for data collection.
  *
- * This function is called by the ESP-IDF event loop when a Wi-Fi related event
- * occurs. It handles events such as station start, disconnection, and connection.
+ * Generates a POST request with a JSON payload containing room and count.
  *
- * @param arg User-defined argument (not used here).
- * @param event_base The base ID of the event (WIFI_EVENT).
- * @param event_id The ID of the specific Wi-Fi event.
- * @param event_data Pointer to the event-specific data.
+ * @param dst Output buffer for the HTTP request.
+ * @param size Size of the output buffer.
+ * @param ip_addr Target server IP address.
+ * @param port Target server port.
+ * @param room Room name for the JSON payload.
+ * @param count Counter value for the JSON payload.
+ *
+ * @note Uses a static 256-byte buffer for JSON data.
  */
-void wifi_event_handler(void* arg, esp_event_base_t event_base, int event_id, void* event_data) {
-    const char* TAG = "WIFI EVENT HANDLER";
-    switch (event_id) {
-        case WIFI_EVENT_STA_START:
-            err = esp_wifi_connect();
-            if (err != ESP_OK) {
-                ESP_LOGE(TAG, "Error in wifi_event_handler: %s\n", esp_err_to_name(err));
-            }
-            ESP_LOGI(TAG, "Attempting to connect to Wifi...\n");
-            M5.dis.drawpix(0, 0x0000ff);  // Blue: Connecting
-            break;
+void generate_post_request(char* dst, size_t size, const char* ip_addr, int port, const char* room,
+                           int count) {
+    static char json_data[256] = {0};
 
-        case WIFI_EVENT_STA_DISCONNECTED:
-            connected_to_wifi = false;
-            ESP_LOGI(TAG, "Disconected from Wifi. Retrying..\n");
-            err = esp_wifi_connect();
-            if (err != ESP_OK) {
-                ESP_LOGE(TAG, "Error in wifi_event_handler: %s\n", esp_err_to_name(err));
-            }
-            M5.dis.drawpix(0, 0xff0000);  // Red: Disconnected
-            break;
+    snprintf(json_data, 256, "{\n\t\"room\": \"%s\",\n\t\"count\": %d\n}", room, count);
 
-        case WIFI_EVENT_STA_CONNECTED:
-            connected_to_wifi = true;
-            ESP_LOGI(TAG, "Connected to wifi.");
-            M5.dis.drawpix(0, 0x00ff00);  // Green: Connected
-            break;
-
-        default:
-            break;
-    }
-    M5.update();
-}
-
-/**
- * @brief Event handler for IP events.
- *
- * This function is called by the ESP-IDF event loop when an IP related event
- * occurs. It handles events such as the acquisition of an IP address.
- *
- * @param arg User-defined argument (not used here).
- * @param event_base The base ID of the event (IP_EVENT).
- * @param event_id The ID of the specific IP event.
- * @param event_data Pointer to the event-specific data.
- */
-void ip_event_handler(void* arg, esp_event_base_t event_base, int event_id, void* event_data) {
-    const char* TAG = "IP EVENT HANDLER";
-    switch (event_id) {
-        case IP_EVENT_STA_GOT_IP: {
-            ip_event_got_ip_t* event = (ip_event_got_ip_t*)event_data;
-            ESP_LOGI(TAG, "Got IP address:" IPSTR, IP2STR(&event->ip_info.ip));
-            break;
-        }
-
-        default:
-            break;
-    }
+    snprintf(dst, size,
+             "POST /collect HTTP/1.1\n"
+             "Host: %s:%d\n"
+             "Content-Length: %d\n"
+             "Content-Type: application/json\n"
+             "\n"
+             "%s",
+             ip_addr, port, strlen(json_data), json_data);
 }

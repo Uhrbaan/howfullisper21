@@ -17,9 +17,6 @@
 #include <cstddef>
 
 #define RESPONSE_BUFFER_SIZE 4096  ///< Adjust as needed for response buffer.
-#define HOST_IP "192.168.188.176"  ///< IP address of the server.
-#define HOST_PORT 5000             ///< Port number of the server.
-#define HOST_PORT_STR "5000"       ///< Port number of the server as a string.
 
 /**
  * @brief Initializes and connects to Wi-Fi.
@@ -110,5 +107,22 @@ void wifi_event_handler(void* arg, esp_event_base_t event_base, int event_id, vo
  * @param event_data IP event data.
  */
 void ip_event_handler(void* arg, esp_event_base_t event_base, int event_id, void* event_data);
+
+/**
+ * @brief Creates an HTTP POST request for data collection.
+ *
+ * Generates a POST request with a JSON payload containing room and count.
+ *
+ * @param dst Output buffer for the HTTP request.
+ * @param size Size of the output buffer.
+ * @param ip_addr Target server IP address.
+ * @param port Target server port.
+ * @param room Room name for the JSON payload.
+ * @param count Counter value for the JSON payload.
+ *
+ * @note Uses a static 256-byte buffer for JSON data.
+ */
+void generate_post_request(char* dst, size_t size, const char* ip_addr, int port, const char* room,
+                           int count);
 
 #endif

@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <vector>
 
-
 std::vector<String> knownDevices;
 
 void initializeBLE() {
@@ -31,7 +30,7 @@ void flashLED(uint32_t color, int times = 1) {
 }
 
 // BLE scanning function
-void scanForBLEDevices() {
+int scanForBLEDevices() {
     knownDevices.clear();  // Clean previous scan results
     BLE.scan();            // Start scan
 
@@ -58,4 +57,6 @@ void scanForBLEDevices() {
     }
 
     BLE.stopScan();  // Stop scanning
+
+    return knownDevices.size();
 }
