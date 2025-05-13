@@ -12,9 +12,9 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug",
-            "executable": "/home/luclement/Documents/Uni/SIN.02020/999/firmware/.pio/build/m5stack-atom/firmware.elf",
-            "projectEnvName": "m5stack-atom",
-            "toolchainBinDir": "/home/luclement/.platformio/packages/toolchain-xtensa-esp32/bin",
+            "executable": "/home/luclement/Documents/Uni/SIN.02020/999/firmware/.pio/build/m5stack-atom-dev/firmware.elf",
+            "projectEnvName": "m5stack-atom-dev",
+            "toolchainBinDir": "/home/luclement/.platformio/packages/toolchain-xtensa-esp-elf/bin",
             "internalConsoleOptions": "openOnSessionStart",
             "preLaunchTask": {
                 "type": "PlatformIO",
@@ -25,18 +25,18 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (skip Pre-Debug)",
-            "executable": "/home/luclement/Documents/Uni/SIN.02020/999/firmware/.pio/build/m5stack-atom/firmware.elf",
-            "projectEnvName": "m5stack-atom",
-            "toolchainBinDir": "/home/luclement/.platformio/packages/toolchain-xtensa-esp32/bin",
+            "executable": "/home/luclement/Documents/Uni/SIN.02020/999/firmware/.pio/build/m5stack-atom-dev/firmware.elf",
+            "projectEnvName": "m5stack-atom-dev",
+            "toolchainBinDir": "/home/luclement/.platformio/packages/toolchain-xtensa-esp-elf/bin",
             "internalConsoleOptions": "openOnSessionStart"
         },
         {
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (without uploading)",
-            "executable": "/home/luclement/Documents/Uni/SIN.02020/999/firmware/.pio/build/m5stack-atom/firmware.elf",
-            "projectEnvName": "m5stack-atom",
-            "toolchainBinDir": "/home/luclement/.platformio/packages/toolchain-xtensa-esp32/bin",
+            "executable": "/home/luclement/Documents/Uni/SIN.02020/999/firmware/.pio/build/m5stack-atom-dev/firmware.elf",
+            "projectEnvName": "m5stack-atom-dev",
+            "toolchainBinDir": "/home/luclement/.platformio/packages/toolchain-xtensa-esp-elf/bin",
             "internalConsoleOptions": "openOnSessionStart",
             "loadMode": "manual"
         }

@@ -13,16 +13,20 @@
 
 #include "connectivity.hpp"
 
-#include <M5Atom.h>
-#include <SPI.h>
 #include <driver/uart.h>
 #include <errno.h>
 #include <esp_eap_client.h>
+#include <esp_err.h>
 #include <esp_event.h>
+#include <esp_log.h>
 #include <esp_netif.h>
 #include <esp_tls.h>
+#include <esp_tls.h>  // Include for esp_tls_get_x509_der
 #include <esp_wifi.h>
 #include <esp_wpa2.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
 #include <sys/socket.h>
 
 #include "secrets.hpp"
@@ -39,6 +43,11 @@ static const int connection_attempts =
     10;  ///< Constant defining the number of connection attempts for TCP.
 static bool is_connected =
     false;  ///< Static flag indicating if a TCP connection is currently established.
+
+// temporary
+#define HOST_IP "diufvm30"
+#define HOST_PORT 80
+#define HOST_PORT_STR "80"
 
 /**
  * @brief Initializes the Wi-Fi connection in Station (STA) mode.
@@ -76,18 +85,6 @@ int init_wifi() {
         return err;
     }
 
-    err = esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to link wifi event handler: %s", esp_err_to_name(err));
-        return err;
-    }
-
-    err = esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, &ip_event_handler, NULL);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to link ip event handler: %s", esp_err_to_name(err));
-        return err;
-    }
-
     err = esp_wifi_set_mode(WIFI_MODE_STA);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to set Wi-Fi mode: %s", esp_err_to_name(err));
@@ -111,33 +108,49 @@ int init_wifi() {
     }
 
     // configure wpa
-    err = esp_wifi_sta_wpa2_ent_set_identity((uint8_t*)wpa_ent_identity, strlen(wpa_ent_identity));
+    err = esp_eap_client_set_identity((uint8_t*)wpa_ent_identity, strlen(wpa_ent_identity));
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to set wpa identity: %s", esp_err_to_name(err));
         return err;
     }
-    err = esp_wifi_sta_wpa2_ent_set_username((uint8_t*)wpa_ent_username, strlen(wpa_ent_username));
+    err = esp_eap_client_set_username((uint8_t*)wpa_ent_username, strlen(wpa_ent_username));
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to set wpa username: %s", esp_err_to_name(err));
         return err;
     }
-    err = esp_wifi_sta_wpa2_ent_set_password((uint8_t*)wpa_ent_password, strlen(wpa_ent_password));
+    err = esp_eap_client_set_password((uint8_t*)wpa_ent_password, strlen(wpa_ent_password));
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to set wpa password: %s", esp_err_to_name(err));
         return err;
     }
 
     // Set the TTLS phase 2 method
-    err = esp_peap
+    err = esp_eap_client_set_ttls_phase2_method(ESP_EAP_TTLS_PHASE2_MSCHAPV2);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to set the TTLS MschapV2 handshake: %s", esp_err_to_name(err));
+        return err;
+    }
 
-        // TODO: go back to wpa2_ent authentification later.
+    err = esp_eap_client_set_ca_cert((const unsigned char*)digicert_global_root_g2_pem,
+                                     strlen(digicert_global_root_g2_pem));
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "The CA certiicate was not set successfully: %s", esp_err_to_name(err));
+        return err;
+    }
 
-        // // Set the CA certificate
-        // esp_wifi_sta_wpa2_ent_set_ca_cert(
-        //     (const unsigned char*)digicert_global_root_g2_pem,
-        //     strlen(digicert_global_root_g2_pem) + 1);  // +1 to include null terminator
+    err = esp_wifi_sta_enterprise_enable();
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "The enterprise wifi station could not be anabled: %s", esp_err_to_name(err));
+        return err;
+    }
+    // TODO: go back to wpa2_ent authentification later.
 
-        err = esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
+    // // Set the CA certificate
+    // esp_wifi_sta_wpa2_ent_set_ca_cert(
+    //     (const unsigned char*)digicert_global_root_g2_pem,
+    //     strlen(digicert_global_root_g2_pem) + 1);  // +1 to include null terminator
+
+    err = esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to set Wi-Fi config: %s", esp_err_to_name(err));
         return err;
@@ -151,76 +164,6 @@ int init_wifi() {
 
     ESP_LOGI(TAG, "Started Wi-Fi in sta mode. Attempting to connect to '%s'", wifi_config.sta.ssid);
     return ESP_OK;
-}
-
-/**
- * @brief Event handler for Wi-Fi events.
- *
- * This function is called by the ESP-IDF event loop when a Wi-Fi related event
- * occurs. It handles events such as station start, disconnection, and connection.
- *
- * @param arg User-defined argument (not used here).
- * @param event_base The base ID of the event (WIFI_EVENT).
- * @param event_id The ID of the specific Wi-Fi event.
- * @param event_data Pointer to the event-specific data.
- */
-void wifi_event_handler(void* arg, esp_event_base_t event_base, int event_id, void* event_data) {
-    const char* TAG = "WIFI EVENT HANDLER";
-    switch (event_id) {
-        case WIFI_EVENT_STA_START:
-            err = esp_wifi_connect();
-            if (err != ESP_OK) {
-                ESP_LOGE(TAG, "Error in wifi_event_handler: %s\n", esp_err_to_name(err));
-            }
-            ESP_LOGI(TAG, "Attempting to connect to Wifi...\n");
-            M5.dis.drawpix(0, 0x0000ff);  // Blue: Connecting
-            break;
-
-        case WIFI_EVENT_STA_DISCONNECTED:
-            connected_to_wifi = false;
-            ESP_LOGI(TAG, "Disconected from Wifi. Retrying..\n");
-            err = esp_wifi_connect();
-            if (err != ESP_OK) {
-                ESP_LOGE(TAG, "Error in wifi_event_handler: %s\n", esp_err_to_name(err));
-            }
-            M5.dis.drawpix(0, 0xff0000);  // Red: Disconnected
-            break;
-
-        case WIFI_EVENT_STA_CONNECTED:
-            connected_to_wifi = true;
-            ESP_LOGI(TAG, "Connected to wifi.");
-            M5.dis.drawpix(0, 0x00ff00);  // Green: Connected
-            break;
-
-        default:
-            break;
-    }
-    M5.update();
-}
-
-/**
- * @brief Event handler for IP events.
- *
- * This function is called by the ESP-IDF event loop when an IP related event
- * occurs. It handles events such as the acquisition of an IP address.
- *
- * @param arg User-defined argument (not used here).
- * @param event_base The base ID of the event (IP_EVENT).
- * @param event_id The ID of the specific IP event.
- * @param event_data Pointer to the event-specific data.
- */
-void ip_event_handler(void* arg, esp_event_base_t event_base, int event_id, void* event_data) {
-    const char* TAG = "IP EVENT HANDLER";
-    switch (event_id) {
-        case IP_EVENT_STA_GOT_IP: {
-            ip_event_got_ip_t* event = (ip_event_got_ip_t*)event_data;
-            ESP_LOGI(TAG, "Got IP address:" IPSTR, IP2STR(&event->ip_info.ip));
-            break;
-        }
-
-        default:
-            break;
-    }
 }
 
 /**
@@ -301,7 +244,7 @@ int send_tcp(const char* buffer, size_t size) {
         err = -1;
         for (int i = 0; i < connection_attempts && err != ESP_OK; i++) {
             err = connect_tcp_socket();
-            delay(50);
+            // delay(50);
         }
         if (err != ESP_OK) {
             return ESP_FAIL;
