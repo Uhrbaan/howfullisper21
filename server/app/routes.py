@@ -25,10 +25,15 @@ def register_routes(app, db):
         Returns:
             flask.Response: The rendered 'index.html' template with the list of rooms.
         """
+        moyenne_pas_cool= 90
         query = db.select(RoomInfo.room)
         rooms = db.session.execute(query).scalars().all()
         print(f"Something connected: {request.headers}")
-        return render_template('index.html', rooms=rooms)
+        return render_template('index.html', rooms=rooms, text_p='hello,world!', moyenne=moyenne_pas_cool)
+    
+    @app.route('/hello')
+    def hell():
+        return render_template('hello.html', cool='😎')
     
     # curl --request POST http://127.0.0.1:5000/collect?room=INFOLAB0&count=7
     @app.route('/collect', methods=['POST', 'GET'])
