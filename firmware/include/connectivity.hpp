@@ -124,6 +124,8 @@ void ip_event_handler(void* arg, esp_event_base_t event_base, int event_id, void
  */
 void generate_post_request(char* dst, size_t size, const char* room, int count);
 
-int shutdown_wifi();
+int deinit_wifi_connection();
+
+void deinit_global_connection();
 
 #endif

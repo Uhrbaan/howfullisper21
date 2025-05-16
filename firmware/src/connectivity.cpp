@@ -31,11 +31,13 @@
 
 bool connected_to_wifi = false;  ///< Global flag indicating Wi-Fi connection status.
 bool aquired_ip_addr = false;
+bool created_default_loop = false;
 
 static int err = 0;  ///< Global variable to store error codes.
 static int sock;     ///< Static variable to hold the TCP socket descriptor.
 static sockaddr_in dest_addr = {
     0};  ///< Static structure to store the destination IP address and port.
+static esp_netif_t* sta_netif = NULL;
 
 static const int connection_attempts =
     10;  ///< Constant defining the number of connection attempts for TCP.
@@ -104,14 +106,26 @@ int init_wifi() {
         ESP_LOGE(TAG, "Failed to initilize netif: %s", esp_err_to_name(err));
         return err;
     }
+    ESP_LOGI(TAG, "Netif initialized successfully.");
 
-    err = esp_event_loop_create_default();
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to create default envent loop: %s", esp_err_to_name(err));
-        return err;
+    if (created_default_loop == false) {
+        err = esp_event_loop_create_default();
+        if (err != ESP_OK) {
+            ESP_LOGE(TAG, "Failed to create default envent loop: %s", esp_err_to_name(err));
+            return err;
+        }
+        ESP_LOGI(TAG, "Successfully created default event loop.");
+        created_default_loop = true;
     }
 
-    esp_netif_t* sta_netif = esp_netif_create_default_wifi_sta();
+    if (sta_netif == NULL) {
+        sta_netif = esp_netif_create_default_wifi_sta();  // Assign to the global static variable
+        if (!sta_netif) {
+            ESP_LOGE(TAG, "Failed to create default Wi-Fi STA netif");
+            return ESP_FAIL;
+        }
+    }
+    ESP_LOGI(TAG, "Successfully created default netif struct.");
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
 
@@ -120,24 +134,28 @@ int init_wifi() {
         ESP_LOGE(TAG, "Failed to initialize Wi-Fi: %s", esp_err_to_name(err));
         return err;
     }
+    ESP_LOGI(TAG, "Successfully initialized wifi.");
 
     err = esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to link wifi event handler: %s", esp_err_to_name(err));
         return err;
     }
+    ESP_LOGI(TAG, "Successfully registered wifi event handler.");
 
     err = esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, &ip_event_handler, NULL);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to link ip event handler: %s", esp_err_to_name(err));
         return err;
     }
+    ESP_LOGI(TAG, "Successfully registered ip event handler.");
 
     err = esp_wifi_set_mode(WIFI_MODE_STA);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to set Wi-Fi mode: %s", esp_err_to_name(err));
         return err;
     }
+    ESP_LOGI(TAG, "Successfully changed wifi to station mode (sta).");
 
     wifi_config_t wifi_config = {0};
     if (authmode == WIFI_AUTH_WPA2_PSK || authmode == WIFI_AUTH_WPA3_PSK ||
@@ -147,24 +165,28 @@ int init_wifi() {
         ESP_LOGE(TAG, "The wifi protocol is not supported...");
         return ESP_FAIL;
     }
+    ESP_LOGI(TAG, "Successfully configured wifi (mode=%d).", authmode);
 
     err = esp_wifi_set_storage(WIFI_STORAGE_RAM);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Could not change wifi storage to RAM: %s", esp_err_to_name(err));
         return err;
     }
+    ESP_LOGI(TAG, "Successfully set wifi storage to RAM.");
 
     err = esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to set Wi-Fi config: %s", esp_err_to_name(err));
         return err;
     }
+    ESP_LOGI(TAG, "Successfully set wifi configuration.");
 
     err = esp_wifi_start();
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to start Wi-Fi: %s", esp_err_to_name(err));
         return err;
     }
+    ESP_LOGI(TAG, "Successfully started wifi.");
 
     ESP_LOGI(TAG, "Started Wi-Fi in sta mode. Attempting to connect to '%s'", wifi_config.sta.ssid);
     return ESP_OK;
@@ -430,20 +452,11 @@ void generate_post_request(char* dst, size_t size, const char* room, int count) 
 }
 
 // AI-generated
-int shutdown_wifi() {
+int deinit_wifi_connection() {
     esp_err_t err;
-    const char* TAG = "WIFI_SHUTDOWN";
+    const char* TAG = "WIFI DEINIT";
 
-    // 1. Stop the Wi-Fi driver
-    ESP_LOGI(TAG, "Stopping Wi-Fi...");
-    err = esp_wifi_stop();
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to stop Wi-Fi: %s", esp_err_to_name(err));
-        return err;
-    }
-    ESP_LOGI(TAG, "Wi-Fi stopped.");
-
-    // 2. Deregister event handlers (important to avoid issues if you re-init later)
+    // 1. Deregister event handlers (important to avoid issues if you re-init later)
     // You should deregister only the handlers you registered in init_wifi
     err = esp_event_handler_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler);
     if (err != ESP_OK) {
@@ -458,6 +471,17 @@ int shutdown_wifi() {
     }
     ESP_LOGI(TAG, "Event handlers unregistered.");
 
+    // 2. Stop the Wi-Fi driver
+    ESP_LOGI(TAG, "Stopping Wi-Fi...");
+    err = esp_wifi_stop();
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to stop Wi-Fi: %s", esp_err_to_name(err));
+        return err;
+    }
+    ESP_LOGI(TAG, "Wi-Fi stopped.");
+    is_connected = false;
+    aquired_ip_addr = false;
+
     // 3. Deinitialize the Wi-Fi driver
     ESP_LOGI(TAG, "Deinitializing Wi-Fi...");
     err = esp_wifi_deinit();
@@ -466,6 +490,19 @@ int shutdown_wifi() {
         return err;
     }
     ESP_LOGI(TAG, "Wi-Fi deinitialized.");
+
+    // Reset your connection flags
+    connected_to_wifi = false;
+    aquired_ip_addr = false;
+
+    // turn the LED off.
+    M5.dis.drawpix(0, 0x000000);
+
+    return ESP_OK;
+}
+
+void deinit_global_connection() {
+    const char TAG[] = "GLOBAL CONNECTION DEINIT";
 
     // 4. Delete the default Wi-Fi STA network interface
     // This assumes you used `esp_netif_create_default_wifi_sta()`
@@ -489,24 +526,4 @@ int shutdown_wifi() {
     } else {
         ESP_LOGI(TAG, "Default event loop destroyed.");
     }
-
-    // 6. Deinitialize the netif stack (if nothing else needs it)
-    // Similar to the event loop, be cautious if other parts of your code use esp_netif.
-    // If Wi-Fi is your only network interface, then this is generally safe.
-    ESP_LOGI(TAG, "Deinitializing esp_netif stack...");
-    err = esp_netif_deinit();
-    if (err != ESP_OK) {
-        ESP_LOGW(TAG, "Failed to deinit esp_netif: %s", esp_err_to_name(err));
-    } else {
-        ESP_LOGI(TAG, "esp_netif stack deinitialized.");
-    }
-
-    // Reset your connection flags
-    connected_to_wifi = false;
-    aquired_ip_addr = false;
-
-    // turn the LED off.
-    M5.dis.drawpix(0, 0x000000);
-
-    return ESP_OK;
 }

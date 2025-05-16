@@ -6,6 +6,7 @@
 // #include <esp_wifi.h>
 #include <string.h>
 
+#include "bluetooth_scanner.hpp"
 #include "connectivity.hpp"
 
 static const char* TAG = "WIFI EXAMPLE";
@@ -33,9 +34,19 @@ void setup() {
 static bool connected = false;
 char response_buff[RESPONSE_BUFFER_SIZE] = {0};
 char payload[RESPONSE_BUFFER_SIZE] = {0};
+static const char* ROOM_NAME = "infolab0";
 
 void loop() {
     if (M5.Btn.wasPressed()) {
+        // begin by scanning for bluetooth:
+        int count = scanForBLEDevices();
+        if (count < 0) {
+            ESP_LOGE(TAG,
+                     "BLE could not be initialized properly. This means something is probably "
+                     "wrong with the device.");
+            return;
+        }
+
         // steps to send data:
         // 0. connect to wifi
         // 1. create a tcp socket
@@ -73,7 +84,8 @@ void loop() {
         }
 
         // 3. send data
-        generate_post_request(payload, sizeof(payload), "infolab0", 3);
+        generate_post_request(payload, sizeof(payload), ROOM_NAME, count);
+        err = send_tcp(payload, strlen(payload));
         if (err != ESP_OK) {
             ESP_LOGE(TAG, "Could not send payload over tcp, skipping: %s", esp_err_to_name(err));
             goto close_socket;
@@ -97,9 +109,11 @@ void loop() {
             ESP_LOGE(TAG, "could not close the socket: %s", esp_err_to_name(err));
         }
 
-        shutdown_wifi();
+        deinit_wifi_connection();
     }
 
     delay(50);
     M5.update();
 }
+
+void shutdown() { deinit_global_connection(); }

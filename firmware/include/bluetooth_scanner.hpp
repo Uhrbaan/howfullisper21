@@ -16,28 +16,14 @@
 extern std::vector<String> knownDevices;
 
 /**
- * @brief Initializes the BLE stack.
- *
- * Call this once, typically in your setup() function. It starts the BLE subsystem and
- * blocks the program if BLE initialization fails.
- */
-void initializeBLE();
-
-/**
- * @brief Flashes the onboard LED with a specified color.
- *
- * @param color The color to display (RGB hex, e.g., 0xffff00 for yellow).
- * @param times Number of times to flash the LED (default is 1).
- */
-void flashLED(uint32_t color, int times = 1);
-
-/**
  * @brief Scans for nearby BLE devices and adds new ones to the knownDevices list.
  *
- * Devices are added only if they are not already known and their RSSI is stronger
- * than -80 dBm (i.e., they are not too far). The LED flashes once per new device,
- * and the device info is printed to the Serial monitor.
+ * The function will initialize the bluetooth, scan for devices for 10 seconds,
+ * and will ignore devices with an rssi lower than a predefined threshold.
+ *
+ * @returns -1 if the BLE was not initialized properly, else it will return the
+ * device count.
  */
-void scanForBLEDevices();
+int scanForBLEDevices();
 
 #endif  // BLUETOOTH_SCANNER_HPP
