@@ -82,7 +82,9 @@ int close_tcp_socket();
  * @brief Indicates if the ESP32 is connected to Wi-Fi.
  *
  */
-extern int connected_to_wifi;
+extern bool connected_to_wifi;
+
+extern bool aquired_ip_addr;
 
 /**
  * @brief Handles Wi-Fi events.
@@ -115,14 +117,13 @@ void ip_event_handler(void* arg, esp_event_base_t event_base, int event_id, void
  *
  * @param dst Output buffer for the HTTP request.
  * @param size Size of the output buffer.
- * @param ip_addr Target server IP address.
- * @param port Target server port.
  * @param room Room name for the JSON payload.
  * @param count Counter value for the JSON payload.
  *
  * @note Uses a static 256-byte buffer for JSON data.
  */
-void generate_post_request(char* dst, size_t size, const char* ip_addr, int port, const char* room,
-                           int count);
+void generate_post_request(char* dst, size_t size, const char* room, int count);
+
+int shutdown_wifi();
 
 #endif

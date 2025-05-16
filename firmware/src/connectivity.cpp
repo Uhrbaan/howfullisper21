@@ -15,9 +15,9 @@
 
 #include <M5Atom.h>
 #include <SPI.h>
+#include <arpa/inet.h>
 #include <driver/uart.h>
 #include <errno.h>
-#include <esp_eap_client.h>
 #include <esp_event.h>
 #include <esp_netif.h>
 #include <esp_tls.h>
@@ -29,9 +29,11 @@
 
 #define RESPONSE_BUFFER_SIZE 4096  ///< Adjust as needed for the TCP response buffer size.
 
-static int err = 0;             ///< Global variable to store error codes.
-int connected_to_wifi = false;  ///< Global flag indicating Wi-Fi connection status.
-static int sock;                ///< Static variable to hold the TCP socket descriptor.
+bool connected_to_wifi = false;  ///< Global flag indicating Wi-Fi connection status.
+bool aquired_ip_addr = false;
+
+static int err = 0;  ///< Global variable to store error codes.
+static int sock;     ///< Static variable to hold the TCP socket descriptor.
 static sockaddr_in dest_addr = {
     0};  ///< Static structure to store the destination IP address and port.
 
@@ -39,6 +41,49 @@ static const int connection_attempts =
     10;  ///< Constant defining the number of connection attempts for TCP.
 static bool is_connected =
     false;  ///< Static flag indicating if a TCP connection is currently established.
+
+wifi_config_t wpa_psk_config() {
+    wifi_config_t config = {0};
+    strcpy((char*)config.sta.ssid, ssid);
+    strcpy((char*)config.sta.password, password);
+    config.sta.threshold.authmode = WIFI_AUTH_WPA2_WPA3_PSK;
+    return config;
+}
+
+// right now does not work
+wifi_config_t wpa_ent_config() {
+    wifi_config_t config = {0};
+    strcpy((char*)config.sta.ssid, ssid);
+    config.sta.scan_method = WIFI_ALL_CHANNEL_SCAN;
+    config.sta.sort_method = WIFI_CONNECT_AP_BY_SIGNAL;
+    config.sta.pmf_cfg.capable = true;
+    config.sta.pmf_cfg.required = false;
+
+    const char* TAG = "WPA ENT CONFIG";
+    // configure wpa
+    err = esp_wifi_sta_wpa2_ent_set_identity((uint8_t*)wpa_ent_identity, strlen(wpa_ent_identity));
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to set wpa identity: %s", esp_err_to_name(err));
+        return (wifi_config_t){0};
+    }
+    err = esp_wifi_sta_wpa2_ent_set_username((uint8_t*)wpa_ent_username, strlen(wpa_ent_username));
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to set wpa username: %s", esp_err_to_name(err));
+        return (wifi_config_t){0};
+    }
+    err = esp_wifi_sta_wpa2_ent_set_password((uint8_t*)wpa_ent_password, strlen(wpa_ent_password));
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to set wpa password: %s", esp_err_to_name(err));
+        return (wifi_config_t){0};
+    }
+    // TODO: go back to wpa2_ent authentification later.
+
+    // // Set the CA certificate
+    // esp_wifi_sta_wpa2_ent_set_ca_cert(
+    //     (const unsigned char*)digicert_global_root_g2_pem,
+    //     strlen(digicert_global_root_g2_pem) + 1);  // +1 to include null terminator
+    return config;
+}
 
 /**
  * @brief Initializes the Wi-Fi connection in Station (STA) mode.
@@ -95,13 +140,12 @@ int init_wifi() {
     }
 
     wifi_config_t wifi_config = {0};
-    strcpy((char*)wifi_config.sta.ssid, ssid);
-    wifi_config.sta.pmf_cfg.required = true;
-
-    err = esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to register wifi configuration: %s", esp_err_to_name(err));
-        return err;
+    if (authmode == WIFI_AUTH_WPA2_PSK || authmode == WIFI_AUTH_WPA3_PSK ||
+        authmode == WIFI_AUTH_WPA2_WPA3_PSK) {
+        wifi_config = wpa_psk_config();
+    } else {
+        ESP_LOGE(TAG, "The wifi protocol is not supported...");
+        return ESP_FAIL;
     }
 
     err = esp_wifi_set_storage(WIFI_STORAGE_RAM);
@@ -110,34 +154,7 @@ int init_wifi() {
         return err;
     }
 
-    // configure wpa
-    err = esp_wifi_sta_wpa2_ent_set_identity((uint8_t*)wpa_ent_identity, strlen(wpa_ent_identity));
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to set wpa identity: %s", esp_err_to_name(err));
-        return err;
-    }
-    err = esp_wifi_sta_wpa2_ent_set_username((uint8_t*)wpa_ent_username, strlen(wpa_ent_username));
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to set wpa username: %s", esp_err_to_name(err));
-        return err;
-    }
-    err = esp_wifi_sta_wpa2_ent_set_password((uint8_t*)wpa_ent_password, strlen(wpa_ent_password));
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to set wpa password: %s", esp_err_to_name(err));
-        return err;
-    }
-
-    // Set the TTLS phase 2 method
-    err = esp_peap
-
-        // TODO: go back to wpa2_ent authentification later.
-
-        // // Set the CA certificate
-        // esp_wifi_sta_wpa2_ent_set_ca_cert(
-        //     (const unsigned char*)digicert_global_root_g2_pem,
-        //     strlen(digicert_global_root_g2_pem) + 1);  // +1 to include null terminator
-
-        err = esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
+    err = esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to set Wi-Fi config: %s", esp_err_to_name(err));
         return err;
@@ -215,6 +232,7 @@ void ip_event_handler(void* arg, esp_event_base_t event_base, int event_id, void
         case IP_EVENT_STA_GOT_IP: {
             ip_event_got_ip_t* event = (ip_event_got_ip_t*)event_data;
             ESP_LOGI(TAG, "Got IP address:" IPSTR, IP2STR(&event->ip_info.ip));
+            aquired_ip_addr = true;
             break;
         }
 
@@ -255,9 +273,9 @@ int create_tcp_socket() {
  * @note HOST_IP and HOST_PORT should be defined elsewhere in the project.
  */
 void init_tcp() {
-    inet_pton(AF_INET, HOST_IP, &dest_addr.sin_addr);
+    inet_pton(AF_INET, target_ipv4_address, &dest_addr.sin_addr);
     dest_addr.sin_family = AF_INET;
-    dest_addr.sin_port = htons(HOST_PORT);
+    dest_addr.sin_port = htons(target_port);
 }
 
 /**
@@ -273,12 +291,14 @@ int connect_tcp_socket() {
 
     err = connect(sock, (struct sockaddr*)&dest_addr, sizeof(dest_addr));
     if (err != 0) {
-        ESP_LOGE(TAG, "Error connecting to %s:%d. Errno: %s", HOST_IP, HOST_PORT, strerror(errno));
+        ESP_LOGE(TAG, "Error connecting to %s:%d. Errno: %s", inet_ntoa(dest_addr.sin_addr),
+                 ntohs(dest_addr.sin_port), strerror(errno));
         is_connected = false;
         return ESP_FAIL;
     }
 
-    ESP_LOGI(TAG, "Succesfully connected to %s:%d", HOST_IP, HOST_PORT);
+    ESP_LOGI(TAG, "Succesfully connected to %s:%d", inet_ntoa(dest_addr.sin_addr),
+             ntohs(dest_addr.sin_port));
     is_connected = true;
     return ESP_OK;
 }
@@ -389,17 +409,13 @@ int close_tcp_socket() { return (close(sock) == 0) ? ESP_OK : ESP_FAIL; }
  *
  * @param dst Output buffer for the HTTP request.
  * @param size Size of the output buffer.
- * @param ip_addr Target server IP address.
- * @param port Target server port.
  * @param room Room name for the JSON payload.
  * @param count Counter value for the JSON payload.
  *
  * @note Uses a static 256-byte buffer for JSON data.
  */
-void generate_post_request(char* dst, size_t size, const char* ip_addr, int port, const char* room,
-                           int count) {
+void generate_post_request(char* dst, size_t size, const char* room, int count) {
     static char json_data[256] = {0};
-
     snprintf(json_data, 256, "{\n\t\"room\": \"%s\",\n\t\"count\": %d\n}", room, count);
 
     snprintf(dst, size,
@@ -409,5 +425,88 @@ void generate_post_request(char* dst, size_t size, const char* ip_addr, int port
              "Content-Type: application/json\n"
              "\n"
              "%s",
-             ip_addr, port, strlen(json_data), json_data);
+             inet_ntoa(dest_addr.sin_addr), ntohs(dest_addr.sin_port), strlen(json_data),
+             json_data);
+}
+
+// AI-generated
+int shutdown_wifi() {
+    esp_err_t err;
+    const char* TAG = "WIFI_SHUTDOWN";
+
+    // 1. Stop the Wi-Fi driver
+    ESP_LOGI(TAG, "Stopping Wi-Fi...");
+    err = esp_wifi_stop();
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to stop Wi-Fi: %s", esp_err_to_name(err));
+        return err;
+    }
+    ESP_LOGI(TAG, "Wi-Fi stopped.");
+
+    // 2. Deregister event handlers (important to avoid issues if you re-init later)
+    // You should deregister only the handlers you registered in init_wifi
+    err = esp_event_handler_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler);
+    if (err != ESP_OK) {
+        ESP_LOGW(TAG, "Failed to unregister Wi-Fi event handler: %s", esp_err_to_name(err));
+        // Don't return, try to proceed with deinitialization
+    }
+
+    err = esp_event_handler_unregister(IP_EVENT, ESP_EVENT_ANY_ID, &ip_event_handler);
+    if (err != ESP_OK) {
+        ESP_LOGW(TAG, "Failed to unregister IP event handler: %s", esp_err_to_name(err));
+        // Don't return, try to proceed with deinitialization
+    }
+    ESP_LOGI(TAG, "Event handlers unregistered.");
+
+    // 3. Deinitialize the Wi-Fi driver
+    ESP_LOGI(TAG, "Deinitializing Wi-Fi...");
+    err = esp_wifi_deinit();
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to deinitialize Wi-Fi: %s", esp_err_to_name(err));
+        return err;
+    }
+    ESP_LOGI(TAG, "Wi-Fi deinitialized.");
+
+    // 4. Delete the default Wi-Fi STA network interface
+    // This assumes you used `esp_netif_create_default_wifi_sta()`
+    ESP_LOGI(TAG, "Destroying Wi-Fi STA netif...");
+    esp_netif_t* default_netif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
+    if (default_netif) {
+        esp_netif_destroy(default_netif);
+        ESP_LOGI(TAG, "Wi-Fi STA netif destroyed.");
+    } else {
+        ESP_LOGW(TAG, "Default Wi-Fi STA netif not found, might have been destroyed already.");
+    }
+
+    // 5. Deinitialize the default event loop (if it's no longer needed for anything else)
+    // Be careful with this if other components rely on the default event loop.
+    // If you only use it for Wi-Fi, it's generally safe to delete it.
+    ESP_LOGI(TAG, "Destroying default event loop...");
+    err = esp_event_loop_delete_default();
+    if (err != ESP_OK) {
+        ESP_LOGW(TAG, "Failed to delete default event loop: %s", esp_err_to_name(err));
+        // It's possible other components are still using it, so a warning might be sufficient.
+    } else {
+        ESP_LOGI(TAG, "Default event loop destroyed.");
+    }
+
+    // 6. Deinitialize the netif stack (if nothing else needs it)
+    // Similar to the event loop, be cautious if other parts of your code use esp_netif.
+    // If Wi-Fi is your only network interface, then this is generally safe.
+    ESP_LOGI(TAG, "Deinitializing esp_netif stack...");
+    err = esp_netif_deinit();
+    if (err != ESP_OK) {
+        ESP_LOGW(TAG, "Failed to deinit esp_netif: %s", esp_err_to_name(err));
+    } else {
+        ESP_LOGI(TAG, "esp_netif stack deinitialized.");
+    }
+
+    // Reset your connection flags
+    connected_to_wifi = false;
+    aquired_ip_addr = false;
+
+    // turn the LED off.
+    M5.dis.drawpix(0, 0x000000);
+
+    return ESP_OK;
 }

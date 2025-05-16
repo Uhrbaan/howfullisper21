@@ -41,8 +41,26 @@ extern const char ssid[];
  */
 extern const char password[];
 
+/**
+ * @brief The identity for WPA enterprise netowrks.
+ *
+ */
 extern const char wpa_ent_identity[];
+
+/**
+ * @brief The username for WPA enterprise networks.
+ *
+ */
 extern const char wpa_ent_username[];
+
+/**
+ * @brief The password for WPA enterprise networks.
+ *
+ */
 extern const char wpa_ent_password[];
+
+extern const char target_ipv4_address[];
+
+extern const int target_port;
 
 #endif
