@@ -19,15 +19,22 @@ def register_routes(app, db):
     def index():
         """
         Renders the homepage, displaying a list of available rooms.
-
         It queries the database for all unique room names from the RoomInfo table.
-
         Returns:
             flask.Response: The rendered 'index.html' template with the list of rooms.
         """
         moyenne_pas_cool= 90
         query = db.select(RoomInfo.room)
-        rooms = db.session.execute(query).scalars().all()
+        room_names = db.session.execute(query).scalars().all()
+        
+        # Add dynamic image filenames for each room
+        rooms = [
+        {
+            "name": room,
+            "image": f"{room.lower()}.png"  # e.g., 'INFOLAB0' → 'infolab0.png'
+        }
+        for room in room_names
+        ]
         print(f"Something connected: {request.headers}")
         return render_template('index.html', rooms=rooms, text_p='hello,world!', moyenne=moyenne_pas_cool)
     
