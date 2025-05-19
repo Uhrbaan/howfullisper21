@@ -122,7 +122,7 @@ void ip_event_handler(void* arg, esp_event_base_t event_base, int event_id, void
  *
  * @note Uses a static 256-byte buffer for JSON data.
  */
-void generate_post_request(char* dst, size_t size, const char* room, int count);
+void generate_post_request(char* dst, size_t size, const char* json);
 
 int deinit_wifi_connection();
 

@@ -5,4 +5,8 @@
     "[cpp]": {
         "editor.defaultFormatter": "xaver.clang-format"
     },
+    "files.associations": {
+        "chrono": "cpp",
+        "algorithm": "cpp"
+    },
 }

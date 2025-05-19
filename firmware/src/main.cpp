@@ -9,6 +9,7 @@
 
 #include "bluetooth_scanner.hpp"
 #include "connectivity.hpp"
+#include "room.hpp"
 
 void scan(void);
 
@@ -20,7 +21,8 @@ int sock;
 static bool connected = false;
 char response_buff[RESPONSE_BUFFER_SIZE] = {0};
 char payload[RESPONSE_BUFFER_SIZE] = {0};
-static const char* ROOM_NAME = "infolab0";
+
+static room_data room = LEARNING_LAB0;
 
 void setup() {
     srand(time(NULL));
@@ -81,13 +83,15 @@ void setup() {
 
 void scan(void) {
     // begin by scanning for bluetooth:
-    int count = scanForBLEDevices();
-    if (count < 0) {
+    room.device_count = scanForBLEDevices();
+    if (room.device_count < 0) {
         ESP_LOGE(TAG,
                  "BLE could not be initialized properly. This means something is probably "
                  "wrong with the device.");
         return;
     }
+
+    calculate_room_occupancy(&room);
 
     // 0. connect to wifi
     err = init_wifi();
@@ -117,7 +121,9 @@ void scan(void) {
     }
 
     // 3. send data
-    generate_post_request(payload, sizeof(payload), ROOM_NAME, count);
+    static char json_data[200] = {0};
+    room_data_to_json(json_data, sizeof(json_data), room);
+    generate_post_request(payload, sizeof(payload), json_data);
     err = send_tcp(payload, strlen(payload));
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Could not send payload over tcp, skipping: %s", esp_err_to_name(err));

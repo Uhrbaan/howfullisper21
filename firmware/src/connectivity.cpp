@@ -436,10 +436,7 @@ int close_tcp_socket() { return (close(sock) == 0) ? ESP_OK : ESP_FAIL; }
  *
  * @note Uses a static 256-byte buffer for JSON data.
  */
-void generate_post_request(char* dst, size_t size, const char* room, int count) {
-    static char json_data[256] = {0};
-    snprintf(json_data, 256, "{\n\t\"room\": \"%s\",\n\t\"count\": %d\n}", room, count);
-
+void generate_post_request(char* dst, size_t size, const char* json) {
     snprintf(dst, size,
              "POST /collect HTTP/1.1\n"
              "Host: %s:%d\n"
@@ -447,8 +444,7 @@ void generate_post_request(char* dst, size_t size, const char* room, int count) 
              "Content-Type: application/json\n"
              "\n"
              "%s",
-             inet_ntoa(dest_addr.sin_addr), ntohs(dest_addr.sin_port), strlen(json_data),
-             json_data);
+             inet_ntoa(dest_addr.sin_addr), ntohs(dest_addr.sin_port), strlen(json), json);
 }
 
 // AI-generated

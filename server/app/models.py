@@ -22,7 +22,7 @@ class Recordings(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     time: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     room: Mapped[str]
-    count: Mapped[int]
+    count: Mapped[float]
 
     def __repr__(self):
         return f"[{self.id}][{self.time}] Room '{self.room}' contains {self.count} bluetooth devices."
