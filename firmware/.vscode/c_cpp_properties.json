@@ -8,7 +8,6 @@
         {
             "name": "PlatformIO",
             "includePath": [
-                "/home/luclement/Documents/Uni/SIN.02020/999/firmware/include",
                 "/home/luclement/Documents/Uni/SIN.02020/999/firmware/src",
                 "/home/luclement/Documents/Uni/SIN.02020/999/firmware/lib/room",
                 "/home/luclement/Documents/Uni/SIN.02020/999/firmware/lib/connectivity",
@@ -251,7 +250,6 @@
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
-                    "/home/luclement/Documents/Uni/SIN.02020/999/firmware/include",
                     "/home/luclement/Documents/Uni/SIN.02020/999/firmware/src",
                     "/home/luclement/Documents/Uni/SIN.02020/999/firmware/lib/room",
                     "/home/luclement/Documents/Uni/SIN.02020/999/firmware/lib/connectivity",
