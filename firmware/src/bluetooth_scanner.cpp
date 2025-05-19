@@ -10,6 +10,7 @@ std::vector<String> knownDevices;
 
 // BLE scanning function
 int scanForBLEDevices() {
+    ESP_LOGI(TAG, "Entered the bluetooth scan.");
     if (!BLE.begin()) {
         ESP_LOGE(TAG, "Failed to start BLE!");
         M5.dis.drawpix(0, 0xff0000);
