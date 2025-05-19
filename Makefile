@@ -79,9 +79,6 @@ populate-remote-db:
 	ssh $(REMOTE_HOST) "docker cp $(POPULATE_SCRIPT) $$(ssh $(REMOTE_HOST) docker ps -q --filter ancestor=$(DOCKER_TAG)):$(POPULATE_SCRIPT)"
 	ssh $(REMOTE_HOST) "docker exec -i $(shell ssh $(REMOTE_HOST) docker ps -q) sqlite3 instance/sqlite.db < $(POPULATE_SCRIPT)"
 
-# shorthand
-run
-
 deploy-server: \
 	build-docs \
 	stop-remote-docker \
