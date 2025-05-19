@@ -56,7 +56,18 @@ The `test` folder contains any tests related to the firmware.
 The firmware itself is conceptually divided into two parts. The first one contains all the networking function of the chip, and enables it to communicate with the central server. 
 The second part contains all the Bluetooth functionality and counts the number of Bluetooth devices.
 
-**TODO: reorganize the code of firmware and explain clearly what each file is supposed to do.**
+`connectivity.hpp/cpp` contain all the network-related functions for the Atom-Lite.
+It is responsible for connecting to the Wi-Fi, establishing a TCP connection 
+with the server and sending the POST request to the server.
+
+`secrets.cpp/hpp` contain all the secret information the Atom-Lite has to have
+access to, like information for the Wi-Fi connection, or the server the Atom-Lite
+should connect to.
+
+> Note: The `connectivity.cpp` file depends on the `secrets.hpp` file, which is
+> provided, but its counterpart, `secrets.cpp` is kept secret. You must create
+> this file yourself and fill it with the `extern` variables defined in 
+> `secrets.hpp`.
 
 ### Server
 Here is a simplified overview of the file structure of the `server` folder:
@@ -106,10 +117,17 @@ The database itself is located at `instance/sqlite.db`.
 It is contained in a single file.
 If you wish interacting with the database directly, I can recommend tools like [`sqlite3`](https://sqlite.org/cli.html) or [DBeaver Community](https://dbeaver.io/) if you prefer a GUI.
 
-The `requirements.txt` file contains all the dependencies required to launch the Flask server. You can install all the dependencies by running:
+If you wish to populate the server database, you can use the provided 
+`populate-script.sql` file. To use it, you may simply run:
 
-```sh
-pip install -r requirements.txt
+```bash
+sqlite3 path/to/database.db < populate-script.sql
+```
+
+For instance, if you run the server locally, you can just run:
+
+```bash
+sqlite3 server/instance/sqlite.db < server/populate-script.sql
 ```
 
 `Dockerfile` contains all the instructions to create a docker container containing the flask app. 

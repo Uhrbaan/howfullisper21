@@ -7,7 +7,7 @@ DOCKER_PORT := 80# default for the http protocol → the user won't have to ente
 DOCKER_IMG_TAR := $(DOCKER_TAG).tar.xz
 REMOTE_HOST := diufvm30
 REMOTE_LOCATION := ~
-POPULATE_SCRIPT := 'populate-script.sql'
+POPULATE_SCRIPT := 'server/populate-script.sql'
 
 export FLASK_APP=run:create_app
 
