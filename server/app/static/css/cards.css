@@ -1,9 +1,9 @@
 .card {
     max-width: 70em;
 
-    background-color: var(--clr-surface-a10);
+    background-color: #edf3f9;
     border-style: solid;
-    border-color: var(--clr-surface-a30);
+    border-color: #abf8a5;
     border-radius: 2em;
     border-width: 2px;
 
@@ -27,7 +27,8 @@
     top: 10%;
     width: 2px;
     height: 80%;
-    background-color: var(--clr-surface-a30);
+    background-color:#abf8a5;
+
     transform: translateX(-50%);
     z-index: 1;
 }

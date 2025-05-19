@@ -11,7 +11,7 @@
     <title>Default</title>
     {% endblock %}
 </head>
-<body>
+<body style="background:#ffffff">
     <header style="background-color: #003366;color:#ffffff; padding: 22px;position:relative;height: 80px;">
         {% block header %}
         <h1 style="font-size:4vw;font-family: Georgia, serif;">
@@ -30,27 +30,27 @@
         <!-- contains articles -->
         {% endblock %}
     </main>
-    <footer>
+    <footer style="background-color:#003366; color:white;padding:20px;display:flex;flex-wrap:wrap">
         <div>
-            <img src="https://cdn.unifr.ch/uf/v2.4.3/gfx/logo.png" alt="uniFR logo">
+            <img src="https://cdn.unifr.ch/uf/v2.4.3/gfx/logo.png" alt="uniFR logo" style=" filter: brightness(0) invert(1);">
         </div>
         <div class="blurb">
             <p>
                 This project was realized for the SOP-2025 course. 
-                It was built using <a href="https://flask.palletsprojects.com/en/stable/">Flask</a>.
+                It was built using <a href="https://flask.palletsprojects.com/en/stable/"style="color: #ffffff;">Flask</a>.
             </p>
         </div>
         <div>
-            <a href="{{url_for('static', filename='docs/html/index.html')}}">Documentation</a>
+            <a href="{{url_for('static', filename='docs/html/index.html')}}"style="color: #ffffff;">Documentation</a>
         </div>
         <div class="authors">
             <ul>
-                <li><a href="">Mathilda Muster</a></li>
-                <li><a href="">Vania Piller</a></li>
-                <li><a href="">Han Kieu</a></li>
-                <li><a href="https://tooting.ch/@leonardurban">
+                <li><a href=""style="color: #ffffff;">Mathilda Muster</a></li>
+                <li><a href=""style="color: #ffffff;">Vania Piller</a></li>
+                <li><a href=""style="color: #ffffff;">Han Kieu</a></li>
+                <li><a href="https://tooting.ch/@leonardurban"style="color: #ffffff;">
                     Léonard Clément
-                    <img class="icon" src="https://joinmastodon.org/logos/logo-black.svg" alt="mastodon icon">
+                    <img class="icon" src="https://joinmastodon.org/logos/logo-black.svg" alt="mastodon icon"style="height: 16px; filter: brightness(0) invert(1); vertical-align: middle;">
                 </a></li>
             </ul>
         </div>
