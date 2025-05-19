@@ -12,10 +12,14 @@
     {% endblock %}
 </head>
 <body>
-    <header>
+    <header style="background_color: #003366;color:#ffffff; padding: 20px;position:relative;height: 80px;">
         {% block header %}
-        <h1><a href="/">How-full-is-PER-21.ch</a></h1>
+        <h1>style="margin:0;font-family:Georgia, serif ;">
+            <a href="/" style="color:#ffffff"; >How-full-is-PER-21.ch</a>
+        </h1>
         {% endblock %}
+        <img src="{{ url_for('static', filename='png/images.png') }}" alt="UNIFR Logo"
+         style="position: absolute; top: 10px; right: 20px; height: 60px;">
     </header>
     <nav>
         {% block nav %}
