@@ -34,12 +34,13 @@
 
 .card img {
     grid-column: 1/2;
-    width: 100%;
+    width: 90%;
+    max-height: 80%;
+    object-fit: contain;
 
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    /* height: 150%; */
+    position: absolute; /* instead of absolute for natural flow */
+    margin: auto;
+    display: block;
 }
 
 .card:nth-child(even) img {
