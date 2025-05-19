@@ -22,7 +22,7 @@ void test_people_count_calculation_simple() {
 void test_people_count_calculation_complex() {
     room_data test = {"ROOM", 0, 10, 2.5, 25, 0, 0};
     calculate_room_occupancy(&test);
-    TEST_ASSERT_EQUAL(4, test.people_count);
+    TEST_ASSERT_EQUAL(6, test.people_count);
 }
 
 void test_occupancy_simple() {
@@ -43,6 +43,7 @@ void setup(void) {
     RUN_TEST(test_people_count_calculation_complex);
     RUN_TEST(test_occupancy_simple);
     RUN_TEST(test_occupancy_complex);
+    UNITY_END();
 }
 
-void loop(void) { UNITY_END(); }
+void loop(void) {}

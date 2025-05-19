@@ -22,7 +22,8 @@
 #include <esp_netif.h>
 #include <esp_tls.h>
 #include <esp_wifi.h>
-#include <esp_wpa2.h>
+#include <esp_wpa2.h>  // Make sure this is included
+#include <nvs_flash.h>
 #include <sys/socket.h>
 
 #include "secrets.hpp"
@@ -44,49 +45,6 @@ static const int connection_attempts =
 static bool is_connected =
     false;  ///< Static flag indicating if a TCP connection is currently established.
 
-wifi_config_t wpa_psk_config() {
-    wifi_config_t config = {0};
-    strcpy((char*)config.sta.ssid, ssid);
-    strcpy((char*)config.sta.password, password);
-    config.sta.threshold.authmode = WIFI_AUTH_WPA2_WPA3_PSK;
-    return config;
-}
-
-// right now does not work
-wifi_config_t wpa_ent_config() {
-    wifi_config_t config = {0};
-    strcpy((char*)config.sta.ssid, ssid);
-    config.sta.scan_method = WIFI_ALL_CHANNEL_SCAN;
-    config.sta.sort_method = WIFI_CONNECT_AP_BY_SIGNAL;
-    config.sta.pmf_cfg.capable = true;
-    config.sta.pmf_cfg.required = false;
-
-    const char* TAG = "WPA ENT CONFIG";
-    // configure wpa
-    err = esp_wifi_sta_wpa2_ent_set_identity((uint8_t*)wpa_ent_identity, strlen(wpa_ent_identity));
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to set wpa identity: %s", esp_err_to_name(err));
-        return (wifi_config_t){0};
-    }
-    err = esp_wifi_sta_wpa2_ent_set_username((uint8_t*)wpa_ent_username, strlen(wpa_ent_username));
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to set wpa username: %s", esp_err_to_name(err));
-        return (wifi_config_t){0};
-    }
-    err = esp_wifi_sta_wpa2_ent_set_password((uint8_t*)wpa_ent_password, strlen(wpa_ent_password));
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to set wpa password: %s", esp_err_to_name(err));
-        return (wifi_config_t){0};
-    }
-    // TODO: go back to wpa2_ent authentification later.
-
-    // // Set the CA certificate
-    // esp_wifi_sta_wpa2_ent_set_ca_cert(
-    //     (const unsigned char*)digicert_global_root_g2_pem,
-    //     strlen(digicert_global_root_g2_pem) + 1);  // +1 to include null terminator
-    return config;
-}
-
 /**
  * @brief Initializes the Wi-Fi connection in Station (STA) mode.
  *
@@ -101,19 +59,20 @@ wifi_config_t wpa_ent_config() {
 int init_wifi() {
     const char* TAG = "WIFI INIT";
 
-    err = esp_netif_init();
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to initilize netif: %s", esp_err_to_name(err));
-        return err;
+    err = nvs_flash_init();
+    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        err = nvs_flash_init();
     }
+    ESP_ERROR_CHECK(err);
+    ESP_LOGI(TAG, "Started nvs flash to store credentials.");
+
+    // NETIF INITIALIZATION ////////////////////////////////////////////////////
+    ESP_ERROR_CHECK(esp_netif_init());
     ESP_LOGI(TAG, "Netif initialized successfully.");
 
     if (created_default_loop == false) {
-        err = esp_event_loop_create_default();
-        if (err != ESP_OK) {
-            ESP_LOGE(TAG, "Failed to create default envent loop: %s", esp_err_to_name(err));
-            return err;
-        }
+        ESP_ERROR_CHECK(esp_event_loop_create_default());
         ESP_LOGI(TAG, "Successfully created default event loop.");
         created_default_loop = true;
     }
@@ -127,65 +86,65 @@ int init_wifi() {
     }
     ESP_LOGI(TAG, "Successfully created default netif struct.");
 
+    // WIFI INITIALIZATION /////////////////////////////////////////////////////
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
 
-    err = esp_wifi_init(&cfg);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to initialize Wi-Fi: %s", esp_err_to_name(err));
-        return err;
-    }
+    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
     ESP_LOGI(TAG, "Successfully initialized wifi.");
 
-    err = esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to link wifi event handler: %s", esp_err_to_name(err));
-        return err;
-    }
-    ESP_LOGI(TAG, "Successfully registered wifi event handler.");
-
-    err = esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, &ip_event_handler, NULL);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to link ip event handler: %s", esp_err_to_name(err));
-        return err;
-    }
-    ESP_LOGI(TAG, "Successfully registered ip event handler.");
-
-    err = esp_wifi_set_mode(WIFI_MODE_STA);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to set Wi-Fi mode: %s", esp_err_to_name(err));
-        return err;
-    }
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     ESP_LOGI(TAG, "Successfully changed wifi to station mode (sta).");
 
+    static uint8_t mac[6];
+    ESP_ERROR_CHECK(esp_wifi_get_mac(WIFI_IF_STA, mac));
+    ESP_LOGI(TAG, "The MAC address for this chip is:  %02x:%02x:%02x:%02x:%02x:%02x", mac[0],
+             mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+    // EVENT HANDLERS //////////////////////////////////////////////////////////
+    ESP_ERROR_CHECK(
+        esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifi_event_handler, NULL));
+    ESP_LOGI(TAG, "Successfully registered wifi event handler.");
+
+    ESP_ERROR_CHECK(
+        esp_event_handler_register(IP_EVENT, ESP_EVENT_ANY_ID, &ip_event_handler, NULL));
+    ESP_LOGI(TAG, "Successfully registered ip event handler.");
+
+    // WIFI SECURITY CONFIGURATION /////////////////////////////////////////////
     wifi_config_t wifi_config = {0};
     if (authmode == WIFI_AUTH_WPA2_PSK || authmode == WIFI_AUTH_WPA3_PSK ||
         authmode == WIFI_AUTH_WPA2_WPA3_PSK) {
-        wifi_config = wpa_psk_config();
-    } else {
-        ESP_LOGE(TAG, "The wifi protocol is not supported...");
-        return ESP_FAIL;
+        strcpy((char*)wifi_config.sta.ssid, ssid);
+        strcpy((char*)wifi_config.sta.password, password);
+        wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_WPA3_PSK;
+    } else if (authmode == WIFI_AUTH_WPA2_ENTERPRISE) {
+        ESP_ERROR_CHECK(esp_wifi_sta_wpa2_ent_set_identity((uint8_t*)wpa_ent_identity,
+                                                           strlen(wpa_ent_identity) + 1));
+        ESP_ERROR_CHECK(esp_wifi_sta_wpa2_ent_set_username((uint8_t*)wpa_ent_username,
+                                                           strlen(wpa_ent_username) + 1));
+        ESP_ERROR_CHECK(
+            esp_wifi_sta_wpa2_ent_set_password((uint8_t*)password, strlen(password) + 1));
+        ESP_ERROR_CHECK(esp_wifi_sta_wpa2_ent_set_ca_cert((uint8_t*)ca_certificate,
+                                                          strlen(ca_certificate) + 1));
+
+        strcpy((char*)wifi_config.sta.ssid, ssid);
+        wifi_config.sta.scan_method = WIFI_ALL_CHANNEL_SCAN;
+        wifi_config.sta.sort_method = WIFI_CONNECT_AP_BY_SIGNAL;
+        wifi_config.sta.pmf_cfg.capable = true;
+        wifi_config.sta.pmf_cfg.required = false;
+
+        ESP_ERROR_CHECK(esp_wifi_sta_wpa2_ent_enable());
+        ESP_LOGI(TAG, "Enabled esp wifi wpa2 with enterprise");
     }
     ESP_LOGI(TAG, "Successfully configured wifi (mode=%d).", authmode);
 
-    err = esp_wifi_set_storage(WIFI_STORAGE_RAM);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Could not change wifi storage to RAM: %s", esp_err_to_name(err));
-        return err;
-    }
+    // START WIFI //////////////////////////////////////////////////////////////
+    ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
     ESP_LOGI(TAG, "Successfully set wifi storage to RAM.");
 
-    err = esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to set Wi-Fi config: %s", esp_err_to_name(err));
-        return err;
-    }
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
     ESP_LOGI(TAG, "Successfully set wifi configuration.");
 
-    err = esp_wifi_start();
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to start Wi-Fi: %s", esp_err_to_name(err));
-        return err;
-    }
+    ESP_ERROR_CHECK(esp_wifi_start());
     ESP_LOGI(TAG, "Successfully started wifi.");
 
     ESP_LOGI(TAG, "Started Wi-Fi in sta mode. Attempting to connect to '%s'", wifi_config.sta.ssid);

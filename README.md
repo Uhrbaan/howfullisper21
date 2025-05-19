@@ -48,21 +48,19 @@ firmware/
 The firmware of the project uses [PlatformIO](https://platformio.org/) as its build system,
 and thus shares the typical file structure of a PlatformIO project.
 The `platformio.ini` file contains all the configurations and dependencies needed for PlatformIO.
-The `src` folder is the hearth of the program: it is where most of the code is written.
-The `include` folder contains the corresponding `.hpp` or `.h` files to the ones found in the `src` folder.
-The `lib` folder contains any libraries external to the PlatformIO system, it is empty.
+The `src` folder contains the entry point to our program.
+The `include` folder contains the `.h` files for the `src` folder if needed.
+The `lib` folder contains all isolated components of code, like `connectivity`, `bluetooth_scanner` or `room`.
 The `test` folder contains any tests related to the firmware.
 
 The firmware itself is conceptually divided into two parts. The first one contains all the networking function of the chip, and enables it to communicate with the central server. 
 The second part contains all the Bluetooth functionality and counts the number of Bluetooth devices.
 
-`connectivity.hpp/cpp` contain all the network-related functions for the Atom-Lite.
+`lib/connectivity` contain all the network-related functions for the Atom-Lite.
 It is responsible for connecting to the Wi-Fi, establishing a TCP connection 
 with the server and sending the POST request to the server.
-
-`secrets.cpp/hpp` contain all the secret information the Atom-Lite has to have
-access to, like information for the Wi-Fi connection, or the server the Atom-Lite
-should connect to.
+It also contains the `secrets.cpp` file, that holds any secret data to configure
+the network connection (like passwords and Wi-Fi name).
 
 > Note: The `connectivity.cpp` file depends on the `secrets.hpp` file, which is
 > provided, but its counterpart, `secrets.cpp` is kept secret. You must create

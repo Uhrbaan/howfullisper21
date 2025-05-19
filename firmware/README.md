@@ -6,58 +6,45 @@ This project uses PlatformIO to build the project. You can find installation ins
 Once you have installed PlatformIO, you can either build/run it through the IDE, or run it with the command line utility:
 
 ```sh
-pio run
+pio run --target build
 ```
 
 ## Running
 If you have the PlatformIO IDE installed, you can run it directly from there. If you only have the command line utility, you can run:
 
 ```sh
-pio run
+pio run --target upload
 ```
 ## Testing
-No tests are implemented for now. You can run them with:
+You can run the tests with:
 
 ```sh
 pio test
 ```
 
-## Documentation
-This project uses [Doxygen](https://www.doxygen.nl/) to generate its documentation. You can install Doxygen with:
-
-```sh
-sudo apt install doxygen
-```
-
-Once doxygen is installed, you can update the documentation with your own new improvements by running:
-
-```sh
-doxygen doxyfile
-```
-
 ## Tasks
 - [ ] Mesures
-    - [ ] Sondage pour savoir combien d'appareils Bluetooth alumés par personne
+    - [X] Sondage pour savoir combien d'appareils Bluetooth alumés par personne
     - [ ] Observer combien de personnes par salles
-- [ ] (chip) Collect Bluetooth data
-    - [ ] Get list of bluetooth devices
-    - [ ] Make sure no devices are counted twice
-    - [ ] Update every ?? minutes only.
-- [ ] (chip) Send data to server
-    - [ ] Research how to make a POST request
-    - [ ] Connect to server
-    - [ ] Connect to wifi
-    - [ ] Protocole
-        - [ ] POST number of devices
-- [ ] (server) Receive data from chips
-    - [ ] Nombre d'appareils dans chaque salle
-    - [ ] Base de données pour statistiques et fréquentation
-    - [ ] Doit être mis à jour toutes les ?? minutes
-    - [ ] Protocol
-        - [ ] obtenir nombre appareils
+- [X] (chip) Collect Bluetooth data
+    - [X] Get list of bluetooth devices
+    - [X] Make sure no devices are counted twice
+    - [X] Update every ?? minutes only.
+- [X] (chip) Send data to server
+    - [X] Research how to make a POST request
+    - [X] Connect to server
+    - [ ] Connect to Wi-Fi // only hotspot for now
+    - [X] Protocole
+        - [X] POST number of devices
+- [X] (server) Receive data from chips
+    - [X] Nombre d'appareils dans chaque salle
+    - [X] Base de données pour statistiques et fréquentation
+    - [X] Doit être mis à jour toutes les ?? minutes
+    - [X] Protocol
+        - [X] obtenir nombre appareils
         - [ ] info si chip est mort.
 - [ ] (server) Create user interface
-    - [ ] Estimation de la fréquentation
+    - [X] Estimation de la fréquentation
     - [ ] Affichange de la fréquentation des salles
     - [ ] nombre de places disponibles
     - [ ] Température du learning lab **bonus**

@@ -7,7 +7,7 @@
 
 float calculate_room_occupancy(room_data* room) {
     float people_count =
-        MIN(room->device_count - room->empty_device_count, 0) / room->devices_per_person;
+        MAX(room->device_count - room->empty_device_count, 0) / room->devices_per_person;
     float occupancy = (room->room_capacity == 0) ? 0 : people_count / (float)room->room_capacity;
     room->people_count = people_count;
     room->occupancy = occupancy;

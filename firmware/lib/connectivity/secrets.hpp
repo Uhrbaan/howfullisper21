@@ -61,6 +61,8 @@ extern const char wpa_ent_password[];
 
 extern const char target_ipv4_address[];
 
+extern const char ca_certificate[];
+
 extern const int target_port;
 
 #endif
