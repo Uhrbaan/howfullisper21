@@ -1,25 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JustGage</title>
-        <script src="Jauge/raphael-2.1.4.min.js"></script>
-        <script src="Jauge/justgage.js"></script>
-</head>
-<body>
-    <h1>JustGage</h1>
-    <div id="gauge" class="200x160px"></div>
-    <script>
-        var g = new JustGage({
-        id: "gauge",
-        value: 67,
-        min: 0,
-        max: 100,
-        title: "Visitors"
-        });
-    </script>
+{% extends 'base.html' %}
 
-    <a href="/room/library">library</a>
-</body>
-</html>
+{% block head %}
+<title>JustGage Test</title>
+{% endblock %}
+
+{% block main %}
+<article>
+  <h1>JustGage Demo</h1>
+  <div id="gauge-demo" class="gauge"></div>
+</article>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Ensure this runs AFTER the DOM is ready
+  document.addEventListener("DOMContentLoaded", function () {
+    new JustGage({
+      id: "gauge-demo",
+      value: 67,
+      min: 0,
+      max: 100,
+      title: "Occupancy",
+      label: "%"
+    });
+  });
+</script>
+{% endblock %}

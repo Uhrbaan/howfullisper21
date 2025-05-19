@@ -19,9 +19,26 @@
                 </h2>
 
                 <p>{{text_p}}</p>
-                <p>{{moyenne}}</p>
+                <div id="gauge-{{ loop.index0 }}" class="gauge"></div>
             </div>
         </div>
     {% endfor %}
 </article>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    {% for room in rooms %}
+        new JustGage({
+        id: "gauge-{{ loop.index0 }}",
+        value: 60,
+        min: 0,
+        max: 100,
+        title: "Occupancy",
+        label: "%"
+      });
+    {% endfor %}
+  });
+</script>
 {% endblock %}

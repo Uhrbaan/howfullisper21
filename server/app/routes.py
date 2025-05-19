@@ -23,7 +23,6 @@ def register_routes(app, db):
         Returns:
             flask.Response: The rendered 'index.html' template with the list of rooms.
         """
-        moyenne_pas_cool= 90
         query = db.select(RoomInfo.room)
         room_names = db.session.execute(query).scalars().all()
         
@@ -36,7 +35,7 @@ def register_routes(app, db):
         for room in room_names
         ]
         print(f"Something connected: {request.headers}")
-        return render_template('index.html', rooms=rooms, text_p='hello,world!', moyenne=moyenne_pas_cool)
+        return render_template('index.html', rooms=rooms, text_p='hello,world!')
     
     @app.route('/hello')
     def hell():

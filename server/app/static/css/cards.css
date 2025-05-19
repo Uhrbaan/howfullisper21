@@ -73,3 +73,9 @@ h2 a {
     color: var(--clr-primary-a60);
     text-decoration: none;
 }
+
+.gauge {
+    width: 180px;
+    height: 140px;
+    margin-top: 1em;
+  }
