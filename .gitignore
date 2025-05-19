@@ -1,6 +1,7 @@
 firmware/.pio
 docs
 .env
+env
 __pycache__
 *.db
 *.tar.xz

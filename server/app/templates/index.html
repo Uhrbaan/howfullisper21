@@ -7,22 +7,38 @@
 
 {% block main %}
 <article>
-    <h1>Index Page</h1>
 
     {% for room in rooms %}
     <section>
         <div class="card">
-            <img src="{{url_for('static', filename='png/room.png')}}" alt="room_tmp">
+            <img src="{{ url_for('static', filename='png/' + room.image) }}" alt="{{ room.name }} image">
             <div class="text">
                 <h2>
-                    <a href="/room/{{room}}">{{room.title()}}</a>
+                    <a href="/room/{{room.name}}">{{room.name.title()}}</a>
                     <span class="material-symbols-outlined">computer</span>
                 </h2>
 
-                <p>{{text_p}}</p>
-                <p>{{moyenne}}</p>
+                <h4>Occupancy (%): </h4>
+                <div id="gauge-{{ loop.index0 }}" class="gauge"></div>
             </div>
         </div>
     {% endfor %}
 </article>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    {% for room in rooms %}
+    new JustGage({
+      id: "gauge-{{ loop.index0 }}",
+      value: {{ room.occupancy_percent | default(0) | tojson }},
+      min: 0,
+      max: 100,
+      title: "Occupancy",
+      label: "%"
+    });
+    {% endfor %}
+  });
+</script>
 {% endblock %}

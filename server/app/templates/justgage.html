@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>JustGage Test</title>
+{% endblock %}
+
+{% block main %}
+<article>
+  <h1>JustGage Demo</h1>
+  <div id="gauge-demo" class="gauge"></div>
+</article>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Ensure this runs AFTER the DOM is ready
+  document.addEventListener("DOMContentLoaded", function () {
+    new JustGage({
+      id: "gauge-demo",
+      value: 67,
+      min: 0,
+      max: 100,
+      title: "Occupancy",
+      label: "%"
+    });
+  });
+</script>
+{% endblock %}

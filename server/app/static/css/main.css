@@ -9,9 +9,9 @@ header {
     width: 100vw;
     border-bottom: 2px solid;
     padding-top: 1em;
-    border-color: var(--clr-primary-a10);
+    border-color: #003366;
 
-    background-color: var(--clr-primary-a0);
+    background-color: #003366;
 }
 
 header h1 {
@@ -41,6 +41,12 @@ main {
     margin: auto;
 }
 
+.gauge {
+    width: 200px;
+    height: 160px;
+    margin-top: 1em;
+}
+
 body h2, h3, h4 {
     font-family: "Overlock", sans-serif;
 }
@@ -52,8 +58,8 @@ footer {
 
     width: 100vw;
     border-top: 2px solid;
-    background-color: var(--bg-dark); 
-    border-color: var(--clr-primary-a40);
+    background-color: #003366;
+    border-color: #003366;
     justify-content: space-between;
     align-items: baseline; 
     font-size: 0.9em;

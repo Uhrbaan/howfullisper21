@@ -5,7 +5,7 @@ It handles requests for the homepage, data collection from sensors, and displayi
 from flask import render_template, request, jsonify
 from app.models import Recordings, Occupancy, RoomInfo
 from markupsafe import escape
-from sqlalchemy.sql import func
+from sqlalchemy.sql import select, func
 
 def register_routes(app, db):
     """
@@ -19,21 +19,42 @@ def register_routes(app, db):
     def index():
         """
         Renders the homepage, displaying a list of available rooms.
-
         It queries the database for all unique room names from the RoomInfo table.
-
         Returns:
             flask.Response: The rendered 'index.html' template with the list of rooms.
         """
-        moyenne_pas_cool= 90
         query = db.select(RoomInfo.room)
-        rooms = db.session.execute(query).scalars().all()
-        print(f"Something connected: {request.headers}")
-        return render_template('index.html', rooms=rooms, text_p='hello,world!', moyenne=moyenne_pas_cool)
+        room_names = db.session.execute(query).scalars().all()
+        
+        # Add dynamic image filenames for each room
+        rooms = []
+        for room_name in room_names:
+            # Get the latest occupancy value for this room
+            subquery = db.select(func.max(Occupancy.time)).where(Occupancy.room == room_name).scalar_subquery()
+            occ_query = db.select(Occupancy).where(Occupancy.room == room_name, Occupancy.time == subquery).limit(1)
+            latest_occupancy = db.session.execute(occ_query).scalar_one_or_none()
+
+            occupancy_percent = round(latest_occupancy.occupancy * 100, 2) if latest_occupancy else 0
+
+            rooms.append({
+                "name": room_name,
+                "image": f"{room_name.lower()}.png",
+                "occupancy_percent": occupancy_percent
+            })
+
+        return render_template(
+            'index.html',
+            rooms=rooms,
+            text_p='hello, world!'
+        )
     
     @app.route('/hello')
     def hell():
         return render_template('hello.html', cool='😎')
+    
+    @app.route('/justgage')
+    def jauge():
+        return render_template('justgage.html')
     
     # curl --request POST http://127.0.0.1:5000/collect?room=INFOLAB0&count=7
     @app.route('/collect', methods=['POST'])
@@ -108,16 +129,22 @@ def register_routes(app, db):
         subquery = db.select(func.max(Occupancy.time)).scalar_subquery()
         query_highest_occupancy = db.select(Occupancy).where(Occupancy.time == subquery).limit(1)
         highest_occupancy_result = db.session.execute(query_highest_occupancy).scalar_one_or_none()
-                
+        
+        occupancy_percent = None
+        if highest_occupancy_result and room_info_result and room_info_result.capacity > 0:
+            occupancy_percent = round(highest_occupancy_result.occupancy * 100, 2)
+
         people = None
         if highest_occupancy_result and room_info_result:
             people = highest_occupancy_result.occupancy * room_info_result.capacity
 
-        return render_template('room.html', 
-                               recordings=recordings,
-                               occupancies=occupancies,
-                                room=room,
-                                people=people,
-                                room_info=room_info_result
-                               )
+        return render_template(
+            "room.html",
+            recordings=recordings,
+            occupancies=occupancies,
+            room=room,
+            people=people,
+            room_info=room_info_result,
+            occupancy_percent=occupancy_percent
+        )
 
