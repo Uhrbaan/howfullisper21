@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JustGage</title>
+        <script src="Jauge/raphael-2.1.4.min.js"></script>
+        <script src="Jauge/justgage.js"></script>
+</head>
+<body>
+    <h1>JustGage</h1>
+    <div id="gauge" class="200x160px"></div>
+    <script>
+        var g = new JustGage({
+        id: "gauge",
+        value: 67,
+        min: 0,
+        max: 100,
+        title: "Visitors"
+        });
+    </script>
+
+    <a href="/room/library">library</a>
+</body>
+</html>

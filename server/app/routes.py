@@ -42,6 +42,10 @@ def register_routes(app, db):
     def hell():
         return render_template('hello.html', cool='😎')
     
+    @app.route('/justgage')
+    def jauge():
+        return render_template('justgage.html')
+    
     # curl --request POST http://127.0.0.1:5000/collect?room=INFOLAB0&count=7
     @app.route('/collect', methods=['POST'])
     def collect():
