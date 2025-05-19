@@ -12,6 +12,7 @@
     <h2>Room Information</h2>
     <p>The room {{room}} has a capacity of {{room_info.capacity}} people.</p>
     <p>Currently, there are an estimated {{people}}</p>
+
     
     <h2>Room Info...</h2>
     <p>
@@ -25,11 +26,8 @@
         {% endfor %}
     </ul>
     
-    <h2>Occupancy...</h2>
-    <ul>
-    {% for occupancy in occupancies %}
-    <li>{{occupancy}}</li>
-    {% endfor %}
+    
     </ul>
 </article>
 {% endblock %}
+

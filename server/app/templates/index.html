@@ -18,7 +18,7 @@
                     <span class="material-symbols-outlined">computer</span>
                 </h2>
 
-                <p>{{text_p}}</p>
+                <h4>Occupancy (%): </h4>
                 <div id="gauge-{{ loop.index0 }}" class="gauge"></div>
             </div>
         </div>
@@ -30,14 +30,14 @@
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     {% for room in rooms %}
-        new JustGage({
-        id: "gauge-{{ loop.index0 }}",
-        value: 60,
-        min: 0,
-        max: 100,
-        title: "Occupancy",
-        label: "%"
-      });
+    new JustGage({
+      id: "gauge-{{ loop.index0 }}",
+      value: {{ room.occupancy_percent | default(0) | tojson }},
+      min: 0,
+      max: 100,
+      title: "Occupancy",
+      label: "%"
+    });
     {% endfor %}
   });
 </script>
