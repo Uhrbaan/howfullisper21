@@ -45,28 +45,6 @@ static const int connection_attempts =
 static bool is_connected =
     false;  ///< Static flag indicating if a TCP connection is currently established.
 
-#include <WiFi.h>
-void init_wifi_arduino() {
-    WiFi.disconnect(true);  // disconnect form wifi to set new wifi connection
-    WiFi.mode(WIFI_STA);    // init wifi mode
-    WiFi.begin(ssid, WPA2_AUTH_PEAP, eap_anonymous_identity, eap_identity, password,
-               ca_certificate);  // with CERTIFICATE
-    // WiFi.begin(ssid, WPA2_AUTH_PEAP, EAP_ANONYMOUS_IDENTITY, EAP_IDENTITY, EAP_PASSWORD);
-    // //without CERTIFICATE
-
-    // Example: a cert-file WPA2 Enterprise with PEAP
-    // WiFi.begin(ssid, WPA2_AUTH_PEAP, EAP_IDENTITY, EAP_USERNAME, EAP_PASSWORD, test_root_ca,
-    // client_cert, client_key);
-
-    // Example: TLS with cert-files and no password
-    // WiFi.begin(ssid, WPA2_AUTH_TLS, EAP_IDENTITY, NULL, NULL, test_root_ca, client_cert,
-    // client_key);
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(500);
-        Serial.print(F("."));
-    }
-}
-
 /**
  * @brief Initializes the Wi-Fi connection in Station (STA) mode.
  *
