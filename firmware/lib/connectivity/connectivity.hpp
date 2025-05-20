@@ -18,14 +18,18 @@
 
 #define RESPONSE_BUFFER_SIZE 4096  ///< Adjust as needed for response buffer.
 
-/**
- * @brief Initializes and connects to Wi-Fi.
- *
- * Initializes the ESP32's Wi-Fi module and connects to a predefined network.
- *
- * @return esp_err_t ESP_OK if successful, ESP_FAIL otherwise.
- */
+int init_eduroam(void);
+
+// /**
+//  * @brief Initializes and connects to Wi-Fi.
+//  *
+//  * Initializes the ESP32's Wi-Fi module and connects to a predefined network.
+//  *
+//  * @return esp_err_t ESP_OK if successful, ESP_FAIL otherwise.
+//  */
 int init_wifi();
+
+void init_wifi_arduino();
 
 /**
  * @brief Initializes TCP connection parameters and creates a socket.

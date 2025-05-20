@@ -82,6 +82,12 @@ void setup() {
 }
 
 void scan(void) {
+    init_eduroam();
+
+    while (!connected_to_wifi || !aquired_ip_addr) {
+        delay(50);
+    }
+
     // begin by scanning for bluetooth:
     room.device_count = scanForBLEDevices();
     if (room.device_count < 0) {
@@ -94,15 +100,11 @@ void scan(void) {
     calculate_room_occupancy(&room);
 
     // 0. connect to wifi
-    err = init_wifi();
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Could not initialize wifi: %s", esp_err_to_name(err));
-        exit(1);
-    }
-
-    while (!connected_to_wifi || !aquired_ip_addr) {
-        delay(50);
-    }
+    // err = init_wifi();
+    // if (err != ESP_OK) {
+    //     ESP_LOGE(TAG, "Could not initialize wifi: %s", esp_err_to_name(err));
+    //     exit(1);
+    // }
 
     init_tcp();
 

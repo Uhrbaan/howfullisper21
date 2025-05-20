@@ -41,28 +41,35 @@ extern const char ssid[];
  */
 extern const char password[];
 
+extern const char eap_anonymous_identity[];
+
 /**
  * @brief The identity for WPA enterprise netowrks.
  *
  */
-extern const char wpa_ent_identity[];
+extern const char eap_identity[];
 
 /**
  * @brief The username for WPA enterprise networks.
  *
  */
-extern const char wpa_ent_username[];
+extern const char eap_username[];
 
 /**
  * @brief The password for WPA enterprise networks.
  *
  */
-extern const char wpa_ent_password[];
+extern const char password[];
 
 extern const char target_ipv4_address[];
 
 extern const char ca_certificate[];
+extern const uint16_t ca_certificate_len;
 
 extern const int target_port;
+
+extern uint8_t crt_start[] asm("_binary_DigiCertGlobalRootG2_crt_start");
+extern uint8_t crt_end[] asm("_binary_DigiCertGlobalRootG2_crt_end");
+unsigned int crt_bytes = crt_end - crt_start;
 
 #endif

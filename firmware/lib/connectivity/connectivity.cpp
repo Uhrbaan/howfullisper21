@@ -45,6 +45,49 @@ static const int connection_attempts =
 static bool is_connected =
     false;  ///< Static flag indicating if a TCP connection is currently established.
 
+#include "esp_eap_client.h"
+#include "esp_event.h"
+#include "esp_log.h"
+#include "esp_netif.h"
+#include "esp_system.h"
+#include "esp_wifi.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/event_groups.h"
+#include "freertos/task.h"
+#include "nvs_flash.h"
+
+int init_eduroam() {
+    ESP_ERROR_CHECK(esp_netif_init());
+    static EventGroupHandle_t wifi_event_group = xEventGroupCreate();
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    static sta_netif* sta_netif = esp_netif_create_default_wifi_sta();
+    assert(sta_netif);
+
+    wifi_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+    ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &event_handler, NULL));
+    ESP_ERROR_CHECK(
+        esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &event_handler, NULL));
+
+    wifi_config_t wifi_config = {0};
+    strcpy(wifi_config.sta.ssid, ssid);
+    ESP_LOGI(TAG, "Setting WiFi configuration SSID %s...", wifi_config.sta.ssid);
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
+    ESP_ERROR_CHECK(esp_eap_client_set_identity((uint8_t*)eap_identity, strlen(eap_identity)));
+
+    ESP_ERROR_CHECK(esp_eap_client_set_ca_cert(ca_certificate, ca_certificate_len));
+
+    ESP_ERROR_CHECK(esp_eap_client_set_username((uint8_t*)eap_username, strlen(eap_username)));
+    ESP_ERROR_CHECK(esp_eap_client_set_password((uint8_t*)password, strlen(password)));
+
+    ESP_ERROR_CHECK(esp_eap_client_set_ttls_phase2_method(ESP_EAP_TTLS_PHASE2_MSCHAPV2));
+
+    ESP_ERROR_CHECK(esp_wifi_sta_enterprise_enable());
+    ESP_ERROR_CHECK(esp_wifi_start());
+    return ESP_OK;
+}
+
 /**
  * @brief Initializes the Wi-Fi connection in Station (STA) mode.
  *
@@ -117,14 +160,16 @@ int init_wifi() {
         strcpy((char*)wifi_config.sta.password, password);
         wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_WPA3_PSK;
     } else if (authmode == WIFI_AUTH_WPA2_ENTERPRISE) {
-        ESP_ERROR_CHECK(esp_wifi_sta_wpa2_ent_set_identity((uint8_t*)wpa_ent_identity,
+        ESP_ERROR_CHECK(esp_wifi_sta_wpa2_ent_set_identity((uint8_t*)eap_identity,
                                                            strlen(wpa_ent_identity) + 1));
-        ESP_ERROR_CHECK(esp_wifi_sta_wpa2_ent_set_username((uint8_t*)wpa_ent_username,
+        ESP_ERROR_CHECK(esp_wifi_sta_wpa2_ent_set_username((uint8_t*)eap_username,
                                                            strlen(wpa_ent_username) + 1));
         ESP_ERROR_CHECK(
             esp_wifi_sta_wpa2_ent_set_password((uint8_t*)password, strlen(password) + 1));
         ESP_ERROR_CHECK(esp_wifi_sta_wpa2_ent_set_ca_cert((uint8_t*)ca_certificate,
                                                           strlen(ca_certificate) + 1));
+
+        // esp_wifi_sta_wpa2_ent_set_ttls_phase2_method((esp_eap_type));
 
         strcpy((char*)wifi_config.sta.ssid, ssid);
         wifi_config.sta.scan_method = WIFI_ALL_CHANNEL_SCAN;
