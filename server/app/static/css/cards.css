@@ -3,7 +3,7 @@
 
     background-color: #edf3f9;
     border-style: solid;
-    border-color: #abf8a5;
+    border-color: #d1dce7;
     border-radius: 2em;
     border-width: 2px;
 
@@ -27,7 +27,7 @@
     top: 10%;
     width: 2px;
     height: 80%;
-    background-color:#abf8a5;
+    background-color:#c5d2df;
 
     transform: translateX(-50%);
     z-index: 1;

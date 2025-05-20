@@ -45,7 +45,7 @@ extern const char password[];
  * @brief The identity for WPA enterprise netowrks.
  *
  */
-extern const char wpa_ent_identity[];
+extern const char eap_identity[];
 
 /**
  * @brief The username for WPA enterprise networks.

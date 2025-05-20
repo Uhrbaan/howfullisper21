@@ -117,8 +117,8 @@ int init_wifi() {
         strcpy((char*)wifi_config.sta.password, password);
         wifi_config.sta.threshold.authmode = WIFI_AUTH_WPA2_WPA3_PSK;
     } else if (authmode == WIFI_AUTH_WPA2_ENTERPRISE) {
-        ESP_ERROR_CHECK(esp_wifi_sta_wpa2_ent_set_identity((uint8_t*)wpa_ent_identity,
-                                                           strlen(wpa_ent_identity) + 1));
+        ESP_ERROR_CHECK(
+            esp_wifi_sta_wpa2_ent_set_identity((uint8_t*)eap_identity, strlen(eap_identity) + 1));
         ESP_ERROR_CHECK(esp_wifi_sta_wpa2_ent_set_username((uint8_t*)wpa_ent_username,
                                                            strlen(wpa_ent_username) + 1));
         ESP_ERROR_CHECK(
