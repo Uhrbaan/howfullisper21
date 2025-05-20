@@ -82,7 +82,7 @@ void setup() {
 }
 
 void scan(void) {
-    init_eduroam();
+    init_wifi_arduino();
 
     while (!connected_to_wifi || !aquired_ip_addr) {
         delay(50);

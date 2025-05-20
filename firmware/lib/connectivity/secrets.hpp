@@ -63,13 +63,9 @@ extern const char password[];
 
 extern const char target_ipv4_address[];
 
-extern const char ca_certificate[];
+extern const char *ca_certificate;
 extern const uint16_t ca_certificate_len;
 
 extern const int target_port;
-
-extern uint8_t crt_start[] asm("_binary_DigiCertGlobalRootG2_crt_start");
-extern uint8_t crt_end[] asm("_binary_DigiCertGlobalRootG2_crt_end");
-unsigned int crt_bytes = crt_end - crt_start;
 
 #endif
