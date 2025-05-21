@@ -22,7 +22,7 @@ static bool connected = false;
 char response_buff[RESPONSE_BUFFER_SIZE] = {0};
 char payload[RESPONSE_BUFFER_SIZE] = {0};
 
-static room_data room = LEARNING_LAB0;
+static room_data room = LEARNING_LAB1;
 
 void setup() {
     srand(time(NULL));

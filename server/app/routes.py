@@ -68,24 +68,34 @@ def register_routes(app, db):
                 return jsonify({'error': 'Request body is not valid JSON'}), 400
             
             room_name = data.get('room')
-            count = data.get('count')
-            capacity = data.get('capacity')
+            room_capacity = data.get('room_capacity')
+            room_empty_device_count = data.get('room_empty_device_count')
+            room_device_per_person = data.get('room_device_per_person')
+            device_count = data.get('device_count')
+            people_count = data.get('people_count')
             occupancy = data.get('occupancy')
 
-            if room and isinstance(count, float):
+            if room_name and isinstance(people_count, float):
                 # add the recording
-                device = Recordings(room=room_name, count=count)
+                device = Recordings(
+                    room=room_name, 
+                    room_capacity=room_capacity,
+                    room_empty_device_count=room_empty_device_count,
+                    room_device_per_person=room_device_per_person,
+                    device_count=device_count,
+                    people_count=people_count,
+                    occupancy=occupancy)
                 db.session.add(device)
                 db.session.commit()
 
                 # if the RoomInfo does not exist i.e, its a new room, create it
-                if capacity is not None:
+                if room_capacity is not None:
                     existing_room = db.session.query(RoomInfo).filter_by(room=room_name).first()
                     if not existing_room:
-                        new_room_info = RoomInfo(room=room_name, capacity=capacity)
+                        new_room_info = RoomInfo(room=room_name, capacity=room_capacity)
                         db.session.add(new_room_info)
                         db.session.flush()  # Ensure the room is added before the commit
-                        print(f"RoomInfo added for room: {room_name} with capacity: {capacity}")
+                        print(f"RoomInfo added for room: {room_name} with capacity: {room_capacity}")
                     else:
                         print(f"RoomInfo already exists for room: {room_name}")
             else:

@@ -7,6 +7,7 @@ from app.app import db
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime
 from sqlalchemy import func
+import json
 
 # Table representing the data recorded by the atom-lites
 class Recordings(db.Model):
@@ -22,10 +23,25 @@ class Recordings(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     time: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     room: Mapped[str]
-    count: Mapped[float]
+    room_capacity: Mapped[int]
+    room_empty_device_count: Mapped[int]
+    room_device_per_person: Mapped[float]
+    device_count: Mapped[int]
+    people_count: Mapped[float]
+    occupancy: Mapped[float]
 
     def __repr__(self):
-        return f"[{self.id}][{self.time}] Room '{self.room}' contains {self.count} bluetooth devices."
+        return json.dumps({
+            'id': self.id,
+            'time': str(self.time),
+            'room': self.room,
+            'room_capacity': self.room_capacity,
+            'room_empty_device_count': self.room_empty_device_count,
+            'room_device_per_person': self.room_device_per_person,
+            'device_count': self.device_count,
+            'people_count': self.people_count,
+            'occupancy': self.occupancy
+        })
     
 # contains static information about the room
 class RoomInfo(db.Model):

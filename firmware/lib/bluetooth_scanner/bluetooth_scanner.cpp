@@ -21,23 +21,26 @@ int scanForBLEDevices() {
 
     knownDevices.clear();  // Clean previous scan results
     BLE.scan();            // Start scan
+    unsigned long startTime = millis();
+    const unsigned long scanDuration = 10000 * 2;  // 15 seconds
 
-    delay(10000);  // Give it a moment (10 seconds) to detect nearby devices
-
-    BLEDevice device = BLE.available();
-    while (device) {
-        String address = device.address();
-        // If it's a new device
-        if (std::find(knownDevices.begin(), knownDevices.end(), address) == knownDevices.end()) {
-            if (device.rssi() >= -100) {
-                knownDevices.push_back(address);
-                // Output to serial
-                ESP_LOGV(TAG, "MAC: %s, RSSI: %d dBm, localName: %s\n", address.c_str(),
-                         device.rssi(), device.localName());
+    while (millis() - startTime < scanDuration) {
+        BLEDevice device = BLE.available();
+        if (device) {  // Check if a device was found
+            String address = device.address();
+            // If it's a new device
+            if (std::find(knownDevices.begin(), knownDevices.end(), address) ==
+                knownDevices.end()) {
+                if (device.rssi() >= -100) {  // Consider devices with reasonable RSSI
+                    knownDevices.push_back(address);
+                    // Output to serial
+                    ESP_LOGV(TAG, "MAC: %s, RSSI: %d dBm, localName: %s\n", address.c_str(),
+                             device.rssi(), device.localName());
+                }
             }
         }
-
-        device = BLE.available();
+        // Small delay to prevent busy-waiting and allow other tasks if any
+        delay(10);
     }
 
     ESP_LOGI(TAG, "BLE scan finished. Found %d devices.", knownDevices.size());  // Add this

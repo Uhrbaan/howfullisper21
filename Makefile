@@ -23,12 +23,12 @@ build-firmware:
 # local debugging options for the server
 debug-server:
 	cd server
-	python3 -m flask run --debug --port=$(FLASK_PORT)
+	python3 -m flask run --debug --host='0.0.0.0' --port=$(FLASK_PORT)
 
 # remove the database to clean it
 clean-server-db:
 	cd server
-	rm -rf instance app/instance app/migrations app/__pycache__ __pycache__
+	rm -rf instance app/instance instance app/migrations migrations app/__pycache__ __pycache__
 
 # initialize the database, if it was deleted for example, or you just installed the project
 init-server-db:

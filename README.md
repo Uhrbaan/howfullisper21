@@ -194,6 +194,34 @@ xcode-select --install # comes pre-packaged with other development tools
 You will also need [Docker](https://www.docker.com/) if you need to deploy the server. Please follow the instructions on the docker website ([Linux](https://docs.docker.com/desktop/setup/install/linux/), [macOS](https://docs.docker.com/desktop/setup/install/mac-install/)).
 
 ## Building
+Before building the firmware, you need to provide a `secrets.cpp` file in 
+`./firmware/lib/connectivity/`. Please create variable for all the `extern` and
+give it the appropriate value, or `0`, `NULL` or equivalent if it is not relevant.
+
+Here is what a typical `secrets.cpp` file might look like if you create a hotspot
+on your phone:
+
+```c
+#include "secrets.hpp"
+
+#define my_hotspot 
+
+#ifdef my_hotspot
+const wifi_auth_mode_t authmode = WIFI_AUTH_WPA2_WPA3_PSK;
+const char ssid[] = "my_hotspot"; // your wifi name
+const char password[] = "12345678"; // your wifi password
+
+// start the server on your computer with the --host='0.0.0.0' option to find the ip address
+const char target_ipv4_address[] = "192.168.248.176";
+const int target_port = 5000; // flask defaults to 5000 normally
+
+// can be ignored - only used for enterprise wifi
+const char eap_identity[] = {0};
+const char eap_username[] = {0};
+const char *ca_certificate = {0};
+#endif
+```
+
 To build the firmware, just run:
 
 ```sh
@@ -222,10 +250,9 @@ If you wish, you can also build the firmware and server directly.
 To build the firmware, first go to the firmware directory and run:
 
 ```sh
-pio run
+pio run # Or run it through the [PlatformIO IDE](https://platformio.org/install/ide?install=vscode).
 ```
 
-Or run it through the [PlatformIO IDE](https://platformio.org/install/ide?install=vscode).
 To run the server directly, you can run:
 ```sh
 flask --app run:create_app run # and options like --host or --debug
@@ -237,7 +264,7 @@ To generate it, run:
 ```sh
 make build-docs
 # or
-doxygen doxyfile # if you want to run it directly
+doxygen Doxyfile # if you want to run it directly
 ```
 
 > Note: you will need Doxygen to generate the documentation. You can install it at <https://www.doxygen.nl/download.html> or install it from your package manager.
