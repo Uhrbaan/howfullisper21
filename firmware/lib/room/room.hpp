@@ -3,8 +3,8 @@
 
 #include <stdio.h>
 
-#define LEARNING_LAB0 (room_data){"Learning Lab 0", 22, 17, 3, 0, 0}
-#define LEARNING_LAB1 (room_data){"Learning Lab 1", 30, 17, 3, 0, 0}
+#define LEARNING_LAB0 (room_data){"Learning Lab 0", 22, 17, 3, 0, 0, 0}
+#define LEARNING_LAB1 (room_data){"Learning Lab 1", 30, 17, 3, 0, 0, 0}
 #define MAX_ROOM_NAME_LENGTH 100
 
 typedef struct room_data {

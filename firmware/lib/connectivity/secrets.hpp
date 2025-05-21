@@ -51,17 +51,11 @@ extern const char eap_identity[];
  * @brief The username for WPA enterprise networks.
  *
  */
-extern const char wpa_ent_username[];
-
-/**
- * @brief The password for WPA enterprise networks.
- *
- */
-extern const char wpa_ent_password[];
+extern const char eap_username[];
 
 extern const char target_ipv4_address[];
 
-extern const char ca_certificate[];
+extern const char *ca_certificate;
 
 extern const int target_port;
 
