@@ -3,8 +3,8 @@
 
 #include <stdio.h>
 
-#define LEARNING_LAB1 (room_data){"Learning Lab", 30, 11, 2.5, 0, 0, 0}
-#define C140 (room_data){"C140", 154, 20, 2, 0, 0, 0}
+#define LEARNING_LAB (room_data){"Learning Lab", 40, 80, 2.5, 0, 0, 0}
+#define C140 (room_data){"C140", 154, 4, 2, 0, 0, 0}
 
 #define MAX_ROOM_NAME_LENGTH 100
 
